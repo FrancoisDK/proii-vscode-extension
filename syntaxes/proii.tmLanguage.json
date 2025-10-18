@@ -189,7 +189,7 @@
       "patterns": [
         {
           "name": "support.function.arithmetic.proii",
-          "match": "\\b(PLUS|MINUS|TIMES|MULTIPLY|DIVIDE|DIVIDED)\\b"
+          "match": "\\b(PLUS|MINUS|TIMES|MULTIPLY|DIVIDE|DIVIDED|RATIO)\\b"
         }
       ]
     },
