@@ -9,13 +9,13 @@ Comprehensive syntax highlighting, **interactive hover tooltips**, **60+ code sn
 Revolutionary new feature that automatically highlights all stream names throughout your PRO/II files with intelligent multi-section support!
 
 **Key Features:**
-- 🎯 **Multi-Section Parsing**: Correctly handles files with multiple NAME sections (tested with 3 sections in RIIG.inp)
+- 🎯 **Multi-Section Parsing**: Correctly handles files with multiple NAME sections (tested with 3 sections in real PRO/II files)
 - 📍 **Context-Aware Highlighting**: Highlights streams in FEED, PRODUCT, STRM=, OUTPUT, and all other contexts
 - ✅ **Smart Validation**: Distinguishes actual stream names from keywords (HEATER, FEED, PRODUCT are correctly excluded)
 - ⚡ **High Performance**: Full-document highlighting in < 150ms, even with 200+ streams
 
 **Test Results:**
-- ✓ 244 stream names extracted from real RIIG.inp file
+- ✓ 244 stream names extracted from real PRO/II simulation file
 - ✓ 531+ stream references correctly identified
 - ✓ 85.7% test pass rate (6/7 tests)
 - ✓ Comprehensive test suite included

@@ -22,7 +22,7 @@ All notable changes to the "proii-language-support" extension will be documented
 - Added end-to-end integration test script (test-stream-highlighting.js) with 4 validation tests
 - Added complete implementation documentation (STREAM_HIGHLIGHTING_COMPLETE.md)
 - Added final status report (FINAL_STATUS.md)
-- **Test Results**: 85.7% pass rate (6/7 tests), 244 stream names extracted from RIIG.inp
+- **Test Results**: 85.7% pass rate (6/7 tests), 244 stream names extracted from test simulation file
 
 ### Performance
 - Stream name parsing: < 50ms

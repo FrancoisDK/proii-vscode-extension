@@ -67,7 +67,7 @@ function parseNameSection(text) {
     return streamNames;
 }
 
-// Test with a sample from the RIIG.inp file
+// Test with a sample from a test PRO/II file
 const testContent = `
   NAME ACI1       ,AIRCOOLER   ,AIR INLET   ,E1105       /*
        ACI2       ,AIRCOOLER   ,AIR INLET   ,E1106       /*
