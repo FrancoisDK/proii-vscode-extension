@@ -1,0 +1,41 @@
+/**
+ * PRO/II Language Support Extension
+ * Main extension activation and registration
+ */
+
+import * as vscode from 'vscode';
+import { ProIIHoverProvider } from './hoverProvider';
+
+/**
+ * This method is called when the extension is activated
+ * Activation is triggered when a PRO/II file (.inp, .std, .out) is opened
+ */
+export function activate(context: vscode.ExtensionContext) {
+    console.log('🚀 PRO/II Language Support extension is now active!');
+    
+    // Register hover provider for all PRO/II file types
+    const hoverProvider = vscode.languages.registerHoverProvider(
+        [
+            { scheme: 'file', language: 'proii' },
+            { scheme: 'untitled', language: 'proii' }
+        ],
+        new ProIIHoverProvider()
+    );
+    
+    // Add hover provider to subscriptions for proper cleanup
+    context.subscriptions.push(hoverProvider);
+    
+    // Log successful activation
+    console.log('✅ PRO/II Hover Provider registered for .inp, .std, and .out files');
+    
+    // Optional: Show activation message (disable in production)
+    // vscode.window.showInformationMessage('PRO/II Language Support activated with hover tooltips!');
+}
+
+/**
+ * This method is called when the extension is deactivated
+ * Used for cleanup if needed
+ */
+export function deactivate() {
+    console.log('👋 PRO/II Language Support extension deactivated');
+}

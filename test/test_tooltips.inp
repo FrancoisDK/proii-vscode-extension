@@ -1,0 +1,162 @@
+$ Test file for v1.2.0 comprehensive tooltip verification
+$ Tests all updated unit operations: PUMP, VALVE, MIXER, COMPRESSOR, 
+$ EQUREACTOR, RXGIBBS, PLUGFLOW, CSTR, COLUMN
+
+TITLE       NEWFILE=C, CASE=TOOLTIP_TEST, PROJECT=V1.2.0
+
+PRINT       INPUT=ALL
+DIMENSION   SI, TEMP=C, PRES=BAR
+SEQUENCE    ASENTERED
+
+$****************************************************************************
+$ COMPONENT DATA
+$****************************************************************************
+
+COMPONENT DATA
+    LIBID   1,H2O/2,H2/3,N2/4,CO/5,CO2/6,CH4/7,C2H4/8,C2H6/&
+            9,C3H6/10,C3H8/11,C4H8/12,NC4/13,NC5/14,NC6,     &
+            BANK=SIMSCI
+
+$****************************************************************************
+$ THERMODYNAMIC DATA
+$****************************************************************************
+
+THERMODYNAMIC DATA    
+    METHOD SYSTEM=SRK, SET=SRK01, DEFAULT
+
+$****************************************************************************
+$ STREAM DATA
+$****************************************************************************
+
+STREAM DATA
+  PROP STRM=FEED1, TEMP=25, PRES=1.0, RATE(M)=100, &
+       COMP(M)=1,10/2,20/3,20/4,10/5,10/6,30
+       
+  PROP STRM=FEED2, TEMP=50, PRES=1.5, RATE(M)=50, &
+       COMP(M)=7,40/8,30/9,20/10,10
+
+$****************************************************************************
+$ UNIT OPERATIONS - All updated in v1.2.0
+$****************************************************************************
+
+UNIT OPERATIONS
+
+$----------- PUMP (Updated v1.2.0) -----------------------------------------
+$ Hover over PUMP to see comprehensive documentation:
+$ - OPERATION modes, efficiency types, curves, DEFINE usage
+
+PUMP        UID=P01, NAME=LIQUID PUMP
+  FEED      FEED1
+  PRODUCT   P01OUT
+  OPER      PRESOUT=10.0
+  ENRATIO   0.75
+  DEFINE    PUMPEFF AS 0.80
+
+$----------- VALVE (Updated v1.2.0) ----------------------------------------
+$ Hover over VALVE to see comprehensive documentation:
+$ - Isenthalpic expansion, pressure drop, CV calculations
+
+VALVE       UID=V01, NAME=PRESSURE LETDOWN
+  FEED      P01OUT
+  PRODUCT   V01OUT
+  POUT      5.0
+
+$----------- MIXER (Updated v1.2.0) ----------------------------------------
+$ Hover over MIXER to see comprehensive documentation:
+$ - Adiabatic mixing, pressure handling, multiple inlets
+
+MIXER       UID=M01, NAME=FEED MIXER
+  FEED      V01OUT, FEED2
+  PRODUCT   M=M01OUT
+  DEFINE    PRES AS MINIMUM
+
+$----------- COMPRESSOR (Updated v1.2.0) -----------------------------------
+$ Hover over COMPRESSOR to see comprehensive documentation:
+$ - Efficiency types, intercooling, multistage, curves
+
+COMPRESSOR  UID=K01, NAME=GAS COMPRESSOR
+  FEED      M01OUT
+  PRODUCT   K01OUT
+  POUT      20.0
+  ENRATIO   0.82
+  OPER      TYPE=ISENTROPIC
+
+$----------- COLUMN (Updated v1.2.0) ---------------------------------------
+$ Hover over COLUMN to see comprehensive documentation:
+$ - 6 algorithms, PARAMETER, FEED, PRODUCT, CONDENSER, REBOILER
+$ - PSPEC, ESTIMATE, SPEC/VARY, PACKING, convergence guidelines
+
+COLUMN      UID=C01, NAME=DISTILLATION COLUMN
+  PARAMETER IO=30, TRAY=20
+  FEED      K01OUT, 10
+  PRODUCT   OVHD(M)=C01OVHD, 80, &
+            BTMS(M)=C01BTMS, 70
+  PSPEC     PTOP(BAR)=19.5, DPCOLUMN(BAR)=0.5
+  CONDENSER TYPE=MIXED
+  REBOILER  TYPE=KETTLE
+  DUTY      1, 1 / 2, 20
+  ESTIMATE  MODEL=SIMPLE
+  SPEC      STREAM=C01OVHD, COMP=7, VALUE=0.95
+  VARY      DUTY=1
+
+$----------- EQUREACTOR (Updated v1.2.0) -----------------------------------
+$ Hover over EQUREACTOR to see comprehensive documentation:
+$ - RXCALC, APPROACH, equilibrium models, phase specs
+
+EQUREACTOR  UID=ER01, NAME=EQUILIBRIUM REACTOR
+  FEED      C01BTMS
+  PRODUCT   V=ER01V, L=ER01L
+  REACTION  1
+  RXCALC    APPROACH(F)=-50
+  DEFINE    TEMP AS 400
+  DEFINE    PRES AS 15
+
+$----------- RXGIBBS (Updated v1.2.0) --------------------------------------
+$ Hover over RXGIBBS to see comprehensive documentation:
+$ - Gibbs minimization, ELEMENTS, CONVERSION, TRIAL, constraints
+
+RXGIBBS     UID=RG01, NAME=GIBBS REACTOR
+  FEED      ER01V
+  PRODUCT   M=RG01OUT
+  ELEMENTS  C, H, O, N
+  DEFINE    TEMP AS 500
+  DEFINE    PRES AS 10
+  TRIAL     COMP=1,0.1/2,0.2/3,0.05/4,0.05/5,0.3/6,0.3
+
+$----------- PLUGFLOW (New in v1.2.0) --------------------------------------
+$ Hover over PLUGFLOW to see comprehensive documentation:
+$ - Tubular reactor, thermal modes, kinetics, pressure drop
+
+PLUGFLOW    UID=PF01, NAME=PLUG FLOW REACTOR
+  FEED      RG01OUT
+  PRODUCT   M=PF01OUT
+  REACTION  1
+  VOLUME(M3)  10.0
+  OPER      TYPE=ADIABATIC
+  DEFINE    PRES AS 10
+
+$----------- CSTR (New in v1.2.0) ------------------------------------------
+$ Hover over CSTR to see comprehensive documentation:
+$ - Stirred tank, boiling pot, perfect mixing, nonvolatiles
+
+CSTR        UID=CS01, NAME=STIRRED TANK REACTOR
+  FEED      PF01OUT
+  PRODUCT   M=CS01OUT
+  REACTION  1
+  VOLUME(M3)  5.0
+  OPER      TYPE=ISOTHERMAL
+  DEFINE    TEMP AS 350
+  DEFINE    PRES AS 8
+
+$****************************************************************************
+$ REACTION DATA (for reactors)
+$****************************************************************************
+
+REACTION DATA
+  REAC  IDNO=1, COMP=4, STOIC=-1 / 1, 1 / 5, 1, &
+        TYPE=EQUILIBRIUM, &
+        NAME=CO + H2O = H2 + CO2
+
+$****************************************************************************
+$ END OF FILE
+$****************************************************************************

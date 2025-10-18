@@ -1,0 +1,440 @@
+﻿{
+  "TITLE Block": {
+    "prefix": "title",
+    "body": [
+      "TITLE       NEWFILE=${1:C},              &",
+      "            CASE=${2:A}                  &",
+      "            PROJECT=${3:PROJECT_NAME}    &",
+      "            PROBLEM=${4:PROBLEM_NAME}    &",
+      "            USER=${5:USER_NAME}          &",
+      "            DATE=${6:01JAN2025}"
+    ],
+    "description": "Pro/II Title block"
+  },
+  "DIMENSION Statement": {
+    "prefix": "dimension",
+    "body": [
+      "DIMENSION   ${1|ENGLISH,METRIC,SI|}, TEMP=${2:F}, PRES=${3:PSIA}, TIME=${4:HR}"
+    ],
+    "description": "Define dimensional units"
+  },
+  "COMPONENT DATA Block": {
+    "prefix": "compdata",
+    "body": [
+      "COMPONENT DATA",
+      "    LIBID   ${1:1,H2O/2,H2/3,N2/4,CO2}   &",
+      "            BANK=SIMSCI,PROCESS,SHLB=NONE",
+      "    ASSAY   FIT=SPLINE, CONVERSION=API94, &",
+      "            CURVEFIT=VER6, FORMATION=VER91"
+    ],
+    "description": "Pro/II Component Data section"
+  },
+  "THERMODYNAMIC DATA Block": {
+    "prefix": "thermodata",
+    "body": [
+      "THERMODYNAMIC DATA",
+      "    METHOD  SYSTEM=${1:SRK}, TRANSPORT=${2:PETR}, FLPO=NELS, CETA=API, &",
+      "            SET=${3:SRK-HP}, DEFAULT",
+      "    WATER   PROP=STEAM"
+    ],
+    "description": "Pro/II Thermodynamic Data section"
+  },
+  "STREAM DATA Category": {
+    "prefix": "streamdata",
+    "body": [
+      "STREAM DATA"
+    ],
+    "description": "Stream Data category header"
+  },
+  "STREAM PROPERTY": {
+    "prefix": "prop",
+    "body": [
+      "PROPERTY STREAM=${1:STREAM_NAME}, TEMP(${2:F})=${3:100}, &",
+      "         PRES(${4:PSIA})=${5:50}, RATE(${6:M})=${7:1000}, &",
+      "         COMP(${8:M})=${9:1,100}, NORMALIZE"
+    ],
+    "description": "Define stream properties"
+  },
+  "UNIT OPERATIONS Category": {
+    "prefix": "unitops",
+    "body": [
+      "UNIT OPERATIONS"
+    ],
+    "description": "Unit Operations category header"
+  },
+  "FLASH Unit - Adiabatic": {
+    "prefix": "flash-adia",
+    "body": [
+      "  FLASH     UID=${1:F-1}, NAME=${2:FLASH}",
+      "    FEED    ${3:FEED_STREAM}",
+      "    PROD    V=${4:VAPOR}, L=${5:LIQUID}",
+      "    ADIA    DP=${6:5}"
+    ],
+    "description": "Adiabatic Flash with pressure drop"
+  },
+  "FLASH Unit - Isothermal": {
+    "prefix": "flash-isot",
+    "body": [
+      "  FLASH     UID=${1:F-2}, NAME=${2:FLASH}",
+      "    FEED    ${3:FEED_STREAM}",
+      "    PROD    V=${4:VAPOR}, L=${5:LIQUID}",
+      "    ISOT    TEMP(${6:F})=${7:100}, DP=${8:0}"
+    ],
+    "description": "Isothermal Flash at specified temperature"
+  },
+  "FLASH Unit - Bubble Point": {
+    "prefix": "flash-bubb",
+    "body": [
+      "  FLASH     UID=${1:F-3}, NAME=${2:BUBBLE FLASH}",
+      "    FEED    ${3:FEED_STREAM}",
+      "    PROD    L=${4:LIQUID}",
+      "    BUBB    PRESSURE(${5:PSIA})=${6:100}",
+      "    METHOD  SET=${7:SET01}"
+    ],
+    "description": "Bubble point flash"
+  },
+  "FLASH Unit - With Spec": {
+    "prefix": "flash-spec",
+    "body": [
+      "  FLASH     UID=${1:F004}, NAME=${2:COOLER}, KPRINT",
+      "    FEED    ${3:FEED1, FEED2}",
+      "    PROD    V=${4:VAPOR}, L=${5:LIQUID}",
+      "    TPSPEC  DP=${6:10}",
+      "  SPEC      STREAM=${5:LIQUID}, RATE, VALUE=${7:1432}"
+    ],
+    "description": "Flash with stream specification"
+  },
+  "FLASH Unit - Define Duty": {
+    "prefix": "flash-duty",
+    "body": [
+      "  FLASH     UID=${1:F5}",
+      "    FEED    ${2:FEED}",
+      "    PROD    M=${3:PRODUCT}",
+      "    ADIA    DP=${4:0.0}",
+      "    DEFINE  DUTY AS COLUMN=${5:T101}, DUTY(${6:2})"
+    ],
+    "description": "Flash with defined duty from column"
+  },
+  "FLASH Unit - With Entrain": {
+    "prefix": "flash-entrain",
+    "body": [
+      "  FLASH     UID=${1:F7}",
+      "    FEED    ${2:FEED}",
+      "    PROD    V=${3:VAPOR}, L=${4:LIQUID}",
+      "    ISOT    TEMP(${5:F})=${6:100}, PRESSURE(${7:ATM})=${8:1}",
+      "    ENTRAIN FROM=L, TO=V, PERCENT=${9:1.5}"
+    ],
+    "description": "Flash with liquid entrainment in vapor"
+  },
+  "COLUMN Unit - IO Method": {
+    "prefix": "column-io",
+    "body": [
+      "  COLUMN    UID=${1:COL1}, NAME=${2:DISTILLATION COLUMN}",
+      "    PARA    IO=${3:30}, TRAY=${4:20}",
+      "    FEED    ${5:FEED1},${6:10}/${7:FEED2},${8:15}",
+      "    PROD    OVHD=${9:OVHD}, BTMS=${10:BTMS}",
+      "    PRES    TOP(${11:PSIA})=${12:20}, BOTTOM(${11:PSIA})=${13:25}",
+      "    COND    TYPE=${14|TOTAL,PARTIAL,SUBCOOLED|}, TEMP(${15:F})=${16:100}",
+      "    REFLUX  RATIO=${17:2.0}",
+      "    DUTY    ${18:1}=${19:0}",
+      "    ESTIMATE TRAY(${20:F})=${21:1,200/20,150}",
+      "    ESTIMATE REFLUX=${17:2.0}, PRODUCT(${22:M})=${23:OVHD,100/BTMS,900}"
+    ],
+    "description": "Column with IO algorithm"
+  },
+  "COLUMN Unit - SURE Method": {
+    "prefix": "column-sure",
+    "body": [
+      "  COLUMN    UID=${1:C1}, NAME=${2:FRACTIONATOR}",
+      "    PARA    SURE=${3:20}, TRAY=${4:30}, KEY=${5:1}",
+      "    FEED    ${6:FEED},${7:15}",
+      "    PROD    OVHD=${8:DIST}, BTMS=${9:BTMS}",
+      "    PRES    TOP(${10:PSIA})=${11:50}, BOTTOM(${10:PSIA})=${12:55}",
+      "    COND    TYPE=${13|TOTAL,PARTIAL|}, TEMP(${14:F})=${15:120}",
+      "    REFLUX  RATIO=${16:3.0}",
+      "    ESTIMATE PRODUCT(${17:M})=${8:DIST,200/}${9:BTMS,800}"
+    ],
+    "description": "Column with SURE algorithm"
+  },
+  "COLUMN Unit - Side Stripper": {
+    "prefix": "sidestripper",
+    "body": [
+      "  SIDESTRIPPER UID=${1:SS1}, NAME=${2:SIDE STRIPPER}",
+      "    PARA    IO=${3:20}, TRAY=${4:10}",
+      "    FEED    ${5:FEED},${6:1}",
+      "    PROD    BTMS=${7:PRODUCT}",
+      "    PRES    TOP(${8:PSIA})=${9:30}, BOTTOM(${8:PSIA})=${10:35}",
+      "    REBOILER TYPE=${11|KETTLE,THERMOSIPHON|}, DUTY(${12:MBTU/HR})=${13:5}"
+    ],
+    "description": "Side stripper column"
+  },
+  "COMPRESSOR Unit - Polytropic": {
+    "prefix": "comp-poly",
+    "body": [
+      "  COMPRESSOR UID=${1:CMP1}, NAME=${2:COMPRESSOR}",
+      "    FEED    ${3:FEED}",
+      "    PROD    V=${4:PRODUCT}",
+      "    OPER    PRESSURE(${5:PSIA})=${6:500}, EFF(${7:PCT})=${8:75}",
+      "    METHOD  SET=${9:SRK-HP}"
+    ],
+    "description": "Polytropic compressor"
+  },
+  "COMPRESSOR Unit - Adiabatic": {
+    "prefix": "comp-adia",
+    "body": [
+      "  COMPRESSOR UID=${1:CPR1}, NAME=${2:COMPRESSOR}",
+      "    FEED    ${3:FEED}",
+      "    PROD    M=${4:PRODUCT}",
+      "    ADIA    EFF(${5:PCT})=${6:80}",
+      "    DEFINE  PRES AS ${7:value}"
+    ],
+    "description": "Adiabatic compressor with efficiency"
+  },
+  "PUMP Unit - Basic": {
+    "prefix": "pump",
+    "body": [
+      "  PUMP      UID=${1:PUM1}, NAME=${2:FEED PUMP}",
+      "    FEED    ${3:FEED}",
+      "    PROD    L=${4:PRODUCT}",
+      "    POUT(${5:PSIA})=${6:100}, ENRATIO=${7:0.75}"
+    ],
+    "description": "Basic pump with outlet pressure"
+  },
+  "PUMP Unit - With Efficiency": {
+    "prefix": "pump-eff",
+    "body": [
+      "  PUMP      UID=${1:PUM2}, NAME=${2:PUMP}",
+      "    FEED    ${3:FEED}",
+      "    PROD    L=${4:PRODUCT}",
+      "    ADIA    EFFICIENCY(${5:PCT})=${6:70}",
+      "    DEFINE  PRES AS ${7:value}"
+    ],
+    "description": "Pump with adiabatic efficiency"
+  },
+  "HX Unit - Cold Side": {
+    "prefix": "hx-cold",
+    "body": [
+      "  HX        UID=${1:HE01}, NAME=${2:HEAT EXCHANGER}",
+      "    COLD    FEED=${3:COLD_IN}, V=${4:COLD_V}, L=${5:COLD_L}, DP(${6:PSI})=${7:5}",
+      "    OPER    CTEMP(${8:F})=${9:200}",
+      "    METHOD  SET=${10:SRK-HP}"
+    ],
+    "description": "Heat exchanger - cold side with outlet temp"
+  },
+  "HX Unit - Hot Side": {
+    "prefix": "hx-hot",
+    "body": [
+      "  HX        UID=${1:HX02}, NAME=${2:COOLER}",
+      "    HOT     FEED=${3:HOT_IN}, V=${4:HOT_V}, L=${5:HOT_L}, DP(${6:PSI})=${7:10}",
+      "    OPER    HTEMP(${8:C})=${9:50}",
+      "    METHOD  SET=${10:SRK-HP}"
+    ],
+    "description": "Heat exchanger - hot side with outlet temp"
+  },
+  "HX Unit - Duty Specified": {
+    "prefix": "hx-duty",
+    "body": [
+      "  HX        UID=${1:HX03}, NAME=${2:HEATER}",
+      "    COLD    FEED=${3:FEED}, M=${4:PRODUCT}, DP=${5:0}",
+      "    OPER    DUTY(${6:MBTU/HR})=${7:10}",
+      "    METHOD  SET=${8:SRK-HP}"
+    ],
+    "description": "Heat exchanger with specified duty"
+  },
+  "HX Unit - Two Side": {
+    "prefix": "hx-both",
+    "body": [
+      "  HX        UID=${1:HX04}, NAME=${2:EXCHANGER}",
+      "    COLD    FEED=${3:COLD_IN}, M=${4:COLD_OUT}, DP=${5:5}",
+      "    HOT     FEED=${6:HOT_IN}, M=${7:HOT_OUT}, DP=${8:10}",
+      "    OPER    CTEMP(${9:F})=${10:200}",
+      "    METHOD  SET=${11:SRK-HP}"
+    ],
+    "description": "Two-side heat exchanger"
+  },
+  "HCURVE Unit": {
+    "prefix": "hcurve",
+    "body": [
+      "  HCURVE    UID=${1:HC1}, NAME=${2:HEATING CURVE}",
+      "    FEED    ${3:FEED}",
+      "    PROD    M=${4:PRODUCT}",
+      "    POINTS  ${5:5}",
+      "    DUTY(${6:MBTU/HR})=${7:0,2,4,6,8,10}",
+      "    PRES(${8:PSIA})=${9:100}",
+      "    METHOD  SET=${10:SRK-HP}"
+    ],
+    "description": "Heating curve unit"
+  },
+  "MIXER Unit - Basic": {
+    "prefix": "mixer",
+    "body": [
+      "  MIXER     UID=${1:MIX1}, NAME=${2:MIXER}",
+      "    FEED    ${3:FEED1,FEED2,FEED3}",
+      "    PROD    M=${4:MIXED}",
+      "    DEFINE  PRES AS ${5:value}",
+      "    METHOD  SET=${6:SRK-HP}"
+    ],
+    "description": "Basic mixer unit"
+  },
+  "MIXER Unit - With Temp": {
+    "prefix": "mixer-temp",
+    "body": [
+      "  MIXER     UID=${1:MIX2}, NAME=${2:MIXER}",
+      "    FEED    ${3:FEED1,FEED2}",
+      "    PROD    M=${4:MIXED}",
+      "    DEFINE  TEMP AS ${5:150}",
+      "    DEFINE  PRES AS ${6:value}"
+    ],
+    "description": "Mixer with temperature specification"
+  },
+  "SPLITTER Unit - Fractions": {
+    "prefix": "splitter",
+    "body": [
+      "  SPLITTER  UID=${1:SPL1}, NAME=${2:SPLITTER}",
+      "    FEED    ${3:FEED}",
+      "    PROD    ${4:PROD1,PROD2,PROD3}",
+      "    FRACTION ${5:0.33,0.33,0.34}",
+      "    METHOD  SET=${6:SRK-HP}"
+    ],
+    "description": "Splitter with fractions"
+  },
+  "SPLITTER Unit - Rates": {
+    "prefix": "splitter-rate",
+    "body": [
+      "  SPLITTER  UID=${1:SPL2}, NAME=${2:SPLITTER}",
+      "    FEED    ${3:FEED}",
+      "    PROD    ${4:PROD1,PROD2}",
+      "    RATE(${5:M})=${6:100,200}",
+      "    METHOD  SET=${7:SRK-HP}"
+    ],
+    "description": "Splitter with rates"
+  },
+  "VALVE Unit": {
+    "prefix": "valve",
+    "body": [
+      "  VALVE     UID=${1:VAL1}, NAME=${2:THROTTLE VALVE}",
+      "    FEED    ${3:FEED}",
+      "    PROD    M=${4:PRODUCT}",
+      "    POUT(${5:PSIA})=${6:50}",
+      "    METHOD  SET=${7:SRK-HP}"
+    ],
+    "description": "Throttle valve"
+  },
+  "VALVE Unit - DP": {
+    "prefix": "valve-dp",
+    "body": [
+      "  VALVE     UID=${1:VAL2}, NAME=${2:VALVE}",
+      "    FEED    ${3:FEED}",
+      "    PROD    M=${4:PRODUCT}",
+      "    DP(${5:PSI})=${6:10}"
+    ],
+    "description": "Valve with pressure drop"
+  },
+  "REACTOR Unit - Conversion": {
+    "prefix": "reactor-conv",
+    "body": [
+      "  REACTOR   UID=${1:R1}, NAME=${2:CONVERSION REACTOR}",
+      "    FEED    ${3:FEED}",
+      "    PROD    M=${4:PRODUCT}",
+      "    STOIC   ${5:1}",
+      "      REAC  ${6:COMP1=-1,COMP2=-1,COMP3=2}",
+      "    CONV    ${5:1}, ${7:0.95}",
+      "    OPER    TEMP(${8:F})=${9:500}, PRES(${10:PSIA})=${11:300}",
+      "    METHOD  SET=${12:SRK-HP}"
+    ],
+    "description": "Conversion reactor"
+  },
+  "REACTOR Unit - Equilibrium": {
+    "prefix": "reactor-equil",
+    "body": [
+      "  REACTOR   UID=${1:R2}, NAME=${2:EQUILIBRIUM REACTOR}",
+      "    FEED    ${3:FEED}",
+      "    PROD    M=${4:PRODUCT}",
+      "    STOIC   ${5:1}",
+      "      REAC  ${6:COMP1=-1,COMP2=-1,COMP3=2}",
+      "    EQUIL   ${5:1}, TEMP(${7:F})=${8:500}, PRES(${9:PSIA})=${10:300}, K=${11:1.5}",
+      "    METHOD  SET=${12:SRK-HP}"
+    ],
+    "description": "Equilibrium reactor"
+  },
+  "CALCULATOR Unit": {
+    "prefix": "calculator",
+    "body": [
+      "  CALCULATOR UID=${1:CALC1}, NAME=${2:CALCULATOR}",
+      "    DEFINE  ${3:R(1)} AS ${4:STREAM=${5:S1},TEMP}",
+      "    PROCEDURE",
+      "      ${6:R(2)=R(1)*1.05}",
+      "    RETURN"
+    ],
+    "description": "Calculator unit"
+  },
+  "STCALC Unit": {
+    "prefix": "stcalc",
+    "body": [
+      "  STCALC    UID=${1:STC1}, NAME=${2:STREAM CALCULATOR}",
+      "    FEED    ${3:FEED}",
+      "    PROD    M=${4:PRODUCT}",
+      "    DEFINE  TEMP AS ${5:150}",
+      "    DEFINE  PRES AS ${6:100}",
+      "    METHOD  SET=${7:SRK-HP}"
+    ],
+    "description": "Stream calculator"
+  },
+  "SPEC Statement": {
+    "prefix": "spec",
+    "body": [
+      "  SPEC      STREAM=${1:STREAM}, ${2|RATE,TEMP,PRES,COMP|}, VALUE=${3:value}"
+    ],
+    "description": "Stream specification"
+  },
+  "DEFINE Statement - Stream": {
+    "prefix": "define-stream",
+    "body": [
+      "    DEFINE  ${1:TEMP} AS STREAM=${2:S1}, ${3|TEMP,PRES,RATE|}${4:, PLUS, ${5:10}}"
+    ],
+    "description": "Define parameter from stream property"
+  },
+  "DEFINE Statement - Unit": {
+    "prefix": "define-unit",
+    "body": [
+      "    DEFINE  ${1:DUTY} AS ${2|FLASH,COLUMN,HX|}=${3:UID}, ${4|TEMP,PRES,DUTY|}"
+    ],
+    "description": "Define parameter from unit property"
+  },
+  "DEFINE Statement - Arithmetic": {
+    "prefix": "define-calc",
+    "body": [
+      "    DEFINE  ${1:VAR} AS ${2:value1}, ${3|PLUS,MINUS,TIMES,DIVIDE|}, ${4:value2}"
+    ],
+    "description": "Define parameter with arithmetic"
+  },
+  "Comment Block": {
+    "prefix": "comment",
+    "body": [
+      "$${1:--------------- ${2:SECTION TITLE} ---------------}"
+    ],
+    "description": "Comment separator"
+  },
+  "Comment Line": {
+    "prefix": "comm",
+    "body": [
+      "$ ${1:Comment text}"
+    ],
+    "description": "Single line comment"
+  },
+  "PRINT Statement": {
+    "prefix": "print",
+    "body": [
+      "PRINT       INPUT=${1|PART,ALL,NONE|}, STREAM=${2|ALL,COMPONENT,SUMMARY|}, &",
+      "            RATE=${3|M,WT,LV,GV|}, WIDTH=${4|80,120,132|}"
+    ],
+    "description": "Print output options"
+  },
+  "SEQUENCE Statement": {
+    "prefix": "sequence",
+    "body": [
+      "SEQUENCE    DEFINED=${1:UNIT1,UNIT2,UNIT3}"
+    ],
+    "description": "Define calculation sequence"
+  }
+}

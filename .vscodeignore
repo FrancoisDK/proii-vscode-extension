@@ -1,0 +1,15 @@
+.vscode/**
+.vscode-test/**
+src/**
+node_modules/**
+.gitignore
+tsconfig.json
+*.vsix
+**/*.map
+.git/**
+.github/**
+__pycache__/**
+*.pyc
+test/**
+tests/**
+.DS_Store

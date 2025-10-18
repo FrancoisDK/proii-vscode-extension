@@ -1,0 +1,210 @@
+$ Example PRO/II Input File - Test Syntax Highlighting
+$ This file demonstrates various Pro/II syntax elements
+
+$****************************************************************************
+$ HEADER SECTION
+$****************************************************************************
+
+  TITLE       NEWFILE=C,              &
+              CASE=TEST               &
+              PROJECT=DEMO            &
+              PROBLEM=SYNTAX_TEST     &
+              USER=DEVELOPER          &
+              DATE=11OCT2025 
+              
+  PRINT       INPUT=COMPONENT,STRM=ALL,MBALANCE,SEQMAP,TBP
+  DBASE       DATA=PETRO,STREAM,PROFILE
+  TOLERANCE   STREAM=1E-2
+  DIMENSION   SI,TEMP=C,PRES=BAR,WT=TONM,TIME=DAY, &
+              ENERGY=KJ, DUTY=WATT,VISCOSITY=CP
+  SEQUENCE    ASENTERED
+  CALCULATION TRIALS=50,RECYCLE=ALL 
+
+$****************************************************************************
+$ COMPONENT DATA
+$****************************************************************************
+
+COMPONENT DATA
+    LIBID   1,H2O/2,H2/3,N2/4,CO2/5,C1/6,C2/7,C3/8,IC4/9,NC4 /&
+            10,IC5/11,NC5/12,NC6/13,NC7/14,NC8,                 &
+            BANK=SIMSCI,PROCESS,SHLB=NONE
+    ASSAY   FIT=SPLINE, CONVERSION=API94, &
+            CURVEFIT=VER6, FORMATION=VER91
+    CUTPOINTS   TBPCUTS=0,500,20,BLEND=CRUDE
+
+$****************************************************************************
+$ THERMODYNAMIC DATA
+$****************************************************************************
+
+  THERMODYNAMIC DATA    
+    METHOD SYSTEM=SRK,  TRANSPORT=PETR, FLPO=NELS, CETA=API, &
+                         SET=SRK-HP, DEFAULT
+    WATER   PROP=STEAM
+    
+    METHOD SYSTEM=SOUR, TRANSPORT=PURE, SET=SOUR        
+
+$****************************************************************************
+$ STREAM DATA
+$****************************************************************************
+
+STREAM DATA
+  PROP STRM=FEED1, TEMP=25, PRES=1.0, &
+       RATE(W)=100, NORM              &
+       COMP(M)=1,10/2,20/3,30/4,40
+
+  PROP STRM=FEED2, TEMP=50, PRES=2.5, &
+       RATE(M)=1.5E+03, NORM          &
+       COMP(W)=5,25.5/6,35.2/7,39.3
+           PROP STRM=RECYCLE, REFS=PRODUCT1, TEMP=100, PRES=5.0
+
+$****************************************************************************
+$ UNIT OPERATIONS
+$****************************************************************************
+
+UNIT OPERATIONS
+
+$----------- FLASH SEPARATOR ------------------------------------------------
+
+  FLASH       UID=FL01, NAME=FEED FLASH
+    FEED      FEED1, FEED2
+    PRODUCT   V=VAPOR1, L=LIQUID1
+    ISO
+    DEFINE    TEMP AS 150.0
+    DEFINE    PRES AS 10.0
+    METHOD    SET=SRK-HP
+
+$----------- HEAT EXCHANGER -------------------------------------------------
+
+  HX          UID=HX01, NAME=FEED PREHEATER
+    HOTSIDE   FEED=PRODUCT1, PRODUCT=COOLED
+    COLDSIDE  FEED=FEED1, PRODUCT=HEATED  /  & $comments here
+    CTEMP=200
+    METHOD    SET=SRK-HP
+
+$----------- PUMP -----------------------------------------------------------
+
+  PUMP        UID=P01, NAME=FEED PUMP
+    FEED      LIQUID1
+    PRODUCT   PUMPED
+    POUT=50.0
+    ENRATIO=0.75
+    METHOD    SET=SRK-HP
+
+$----------- COMPRESSOR -----------------------------------------------------
+
+  COMPRESSOR  UID=K01, NAME=VAPOR COMPRESSOR
+    FEED      VAPOR1
+    PRODUCT   COMPRESSED
+    POUT=25.0
+    ENRATIO=0.80
+    METHOD    SET=SRK-HP
+
+$----------- MIXER ----------------------------------------------------------
+
+  MIXER       UID=M01, NAME=FEED MIXER
+    FEED      PUMPED, COMPRESSED, RECYCLE
+    PRODUCT   M=MIXED
+    DEFINE    PRES AS STRM=PUMPED PRES AS VALUE=5.0
+    METHOD    SET=SRK-HP
+
+$----------- COLUMN ---------------------------------------------------------
+
+  COLUMN      UID=C01, NAME=DISTILLATION COLUMN
+    FEED      MIXED, 10
+    PRODUCT   OVHD(V)=OVERHEAD, BTMS(L)=BOTTOMS
+    LDRAW(W)=SIDECUT, 5, 50.0
+    DEFINE    PTOP AS 2.0
+    PSPEC     DPCOLUMN=0.1
+    CONDENSER TYPE=TOTAL, TEST=40
+    REBOILER  TYPE=KETTLE
+    SPEC      TRAY=1, TEMP, VALUE=45, ATOL=1E-4
+    SPEC      STRM=BOTTOMS, COMP=1, VALUE=0.01
+    VARY      DUTY 1,2
+    VARY      REFLUX
+    ESTIMATE  MODEL=SIMPLE
+    METHOD    SET=SRK-HP
+    TEMP &
+      1,  45.0 /  2,  50.0 /  3,  55.0 /  4,  60.0 /  5,  65.0 / &
+      6,  70.0 /  7,  75.0 /  8,  80.0 /  9,  85.0 / 10,  90.0
+    VAPO &
+      1, 100.0 /  2, 100.0 /  3,  95.0 /  4,  90.0 /  5,  85.0 / &
+      6,  80.0 /  7,  75.0 /  8,  70.0 /  9,  50.0 / 10,   0.0
+
+$----------- CALCULATOR -----------------------------------------------------
+  PUMP      UID=PUMP1, NAME=FEED PUMP
+    FEED      LIQUID1
+    PRODUCT   PUMPED
+    OPER      PRESOUT=50.0
+    
+    ENRATIO=0.75
+    METHOD    SET=SRK-HP
+  
+  CALCULATOR  UID=CALC1, NAME=ENERGY BALANCE
+    DEFINE    R(1) AS STRM=MIXED ENTHALPY(KJ/H)
+    DEFINE    R(2) AS STRM=OVERHEAD ENTHALPY(KJ/H)
+    DEFINE    R(3) AS STRM=BOTTOMS ENTHALPY(KJ/H)
+    DEFINE    P(1) AS STRM=MIXED RATE(W) E
+    PROCEDURE
+      R(4) = R(1) - R(2) - R(3)
+      R(5) = R(4) / P(1)
+      IF (R(5) > 100.0) THEN
+        R(6) = 1.0
+      ELSE
+        R(6) = 0.0
+      ENDIF
+    RETURN
+
+$----------- STREAM CALCULATOR ----------------------------------------------
+
+  STCALC      UID=SC01, NAME=PRODUCT ADJUSTMENT
+    FEED      OVERHEAD, SIDECUT
+    PRODUCT   M=PRODUCT1
+    DEFINE    TEMP AS STRM=OVERHEAD TEMP
+    DEFINE    PRES AS STRM=OVERHEAD PRES
+    METHOD    SET=SRK-HP
+
+$----------- SPLITTER -------------------------------------------------------
+
+  SPLITTER    UID=SP01, NAME=PRODUCT SPLITTER
+    FEED      PRODUCT1
+    PRODUCT   M=PRODUCT2, M=RECYCLE
+    SPEC      STRM=RECYCLE, RATE(W) VALUE=20.0
+    METHOD    SET=SRK-HP
+              MINUS, PLUS, DIVIDE 
+              
+
+
+              
+              $----------- CONTROLLER -----------------------------------------------------
+
+  CONTROLLER  UID=CTRL1, NAME=TEMPERATURE CONTROLLER
+    SPEC      STRM=PRODUCT2 TEMP VALUE=80.0
+    VARY      STRM=FEED1 RATE(W)
+    CPARAM    SOLVE
+
+$----------- VALVE ----------------------------------------------------------
+
+  VALVE       UID=V01, NAME=PRESSURE REDUCER
+    FEED      PRODUCT2
+    PRODUCT   FINAL
+    POUT=1.0
+    METHOD    SET=SRK-HP
+
+$****************************************************************************
+$ OUTPUT FORMAT
+$****************************************************************************
+
+  OUTPUT      FORMAT=GEN, STRM=ALL
+  
+  FORMAT      IDNO=CUSTOM,                                           &
+              TITLE=DETAILED STREAM REPORT,                          &
+              RATE(W),RATE(M),PRES,TEMP,HTOTAL(KJ/H),               &
+              LFRAC(W),FWFRAC(W),                                   &
+              LINE,LIQUID,                                          &
+              DENSITY,SPGR,VISC,CP,TCOND,                          &
+              LINE,VAPOUR,                                          &
+              DENSITY,MW,ZFACTOR,CP,CPRATIO
+
+$****************************************************************************
+$ END OF FILE
+$****************************************************************************

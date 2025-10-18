@@ -1,0 +1,267 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "PRO/II",
+  "scopeName": "source.proii",
+  "fileTypes": ["inp"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#set-parameter"
+    },
+    {
+      "include": "#uid-parameter"
+    },
+    {
+      "include": "#name-parameter"
+    },
+    {
+      "include": "#name-statement"
+    },
+    {
+      "include": "#section-headers"
+    },
+    {
+      "include": "#major-keywords"
+    },
+    {
+      "include": "#unit-operations"
+    },
+    {
+      "include": "#arithmetic-operators"
+    },
+    {
+      "include": "#parameters"
+    },
+    {
+      "include": "#thermodynamic-methods"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#conditionals"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.dollar.proii",
+          "match": "^\\s*\\$.*$"
+        },
+        {
+          "name": "comment.line.dollar.inline.proii",
+          "match": "\\$.*$"
+        }
+      ]
+    },
+    "set-parameter": {
+      "patterns": [
+        {
+          "name": "meta.set-parameter.proii",
+          "match": "\\b(SET)\\s*(=)\\s*([^,\\$\\s\\n]+)",
+          "captures": {
+            "1": {
+              "name": "variable.parameter.proii"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.proii"
+            },
+            "3": {
+              "name": "constant.language.method.proii"
+            }
+          }
+        }
+      ]
+    },
+    "uid-parameter": {
+      "patterns": [
+        {
+          "name": "meta.uid-parameter.proii",
+          "match": "\\b(UID)\\s*(=)\\s*([^,\\$\\s\\n]+)",
+          "captures": {
+            "1": {
+              "name": "variable.parameter.proii"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.proii"
+            },
+            "3": {
+              "name": "string.unquoted.unit-id.proii"
+            }
+          }
+        }
+      ]
+    },
+    "name-parameter": {
+      "patterns": [
+        {
+          "name": "meta.name-parameter.proii",
+          "match": "\\b(NAME)\\s*(=)\\s*([^,\\$\\n]+)",
+          "captures": {
+            "1": {
+              "name": "variable.parameter.proii"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.proii"
+            },
+            "3": {
+              "name": "string.unquoted.unit-name.proii"
+            }
+          }
+        }
+      ]
+    },
+    "name-statement": {
+      "patterns": [
+        {
+          "name": "meta.name-statement.proii",
+          "begin": "^\\s*(NAME)\\b",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.control.proii"
+            }
+          },
+          "end": "^(?!\\s*\\w+\\s*,)",
+          "patterns": [
+            {
+              "name": "string.unquoted.name.proii",
+              "match": "\\w+"
+            },
+            {
+              "name": "punctuation.separator.proii",
+              "match": ","
+            },
+            {
+              "name": "comment.line.continuation.proii",
+              "match": "/\\*"
+            }
+          ]
+        }
+      ]
+    },
+    "section-headers": {
+      "patterns": [
+        {
+          "name": "keyword.control.section.proii",
+          "match": "^\\s*(COMPONENT DATA|STREAM DATA|THERMODYNAMIC DATA|UNIT OPERATIONS)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.control.section.proii"
+            }
+          }
+        }
+      ]
+    },
+    "major-keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.proii",
+          "match": "\\b(TITLE|IDNO|PRINT|DBASE|TOLERANCE|DIMENSION|SEQUENCE|CALCULATION|OUTPUT|FORMAT|ASSAY|CUTPOINTS|CURVEFIT|FORMATION|WATER|ESTIMATE|PACKING|REBOILER|CONDENSER|TFLOW|PSPEC|DUTY|TRIALS|RECYCLE|PTOP|DPCOLUMN|SIDESTRIPPER|READ|LIBID|BANK|SHLB|FIT|SPLINE|CONVERSION|TBPCUTS|BLEND)\\b"
+        }
+      ]
+    },
+    "unit-operations": {
+      "patterns": [
+        {
+          "name": "entity.name.type.unit.proii",
+          "match": "^\\s*(FLASH|CALC|CALCULATOR|COMPRESSOR|STCALC|COLUMN|PUMP|MIXER|SPLITTER|HX|HCURVE|VALVE|CONTROLLER|OPTIMIZER|SIDESTRIPPER)\\b"
+        }
+      ]
+    },
+    "parameters": {
+      "patterns": [
+        {
+          "name": "variable.parameter.proii",
+          "match": "\\b(UID|NAME|TEMP|TEMPERATURE|PRES|PRESS|PRESSURE|RATE|COMP|COMPOSITION|STRM|SET|DEFINE|FEED|PROD|PRODUCT|FPROD|METHOD|ISOT|ADIA|ISO|ADIABATIC|SPEC|VARY|CPARAM|CONSTR|OBJECT|REFS|NORM|NORMALIZE|LIBID|PETRO|TRANSPORT|FLPO|CETA|DEFAULT|PROP|PROPERTY|SYSTEM|TYPE|MODEL|SIMPLE|TEST|KETTLE|THERMOSIPHON|BAFFLE|MIX|MIXED|BUBBLE|BUBB|PART|TFIX|DTBB|VALUE|ATOL|MAXI|MINI|EST2|TRAY|TRAYS|STAGE|STAGES|DRAW|LDRAW|VDRAW|OVHD|BTMS|DISTILLATE|SIDE|SIDESTREAM|SECTION|CAPACITY|PHASE|DPCOLUMN|PROCEDURE|RETURN|CALL|REAL|INTEGER|MINIMIZE|MAXIMIZE|SOLVE|CONTINUE|ASENTERED|NATURAL|TRIALS|RECYCLE|ALL|NONE|ENGLISH|SI|METRIC|PROJECT|PROBLEM|USER|DATE|CASE|NEWFILE|DATA|STREAM|PROFILE|INPUT|COMPONENT|MBALANCE|SEQMAP|TBP|PROPTABLE|RECOVERY|SUMMARY|TLOADING|HTOTAL|LFRAC|VFRAC|SFRACTION|FWFRAC|CRATE|LRATE|ARATE|SRATE|LIQUID|VAPOR|VAPOUR|DENSITY|SPGR|API|VISC|VISCOSITY|CP|CV|TCOND|SURF|SURFACE|MW|ZFACTOR|CPRATIO|TC|PC|CPCT|CFRAC|GV|FLPO|ENTHALPY|ENTROPY|HTEMP|CTEMP|HFLOW|CFLOW|DUTY|HOT|HOTSIDE|COLD|COLDSIDE|OPER|OPERATION|POLY|POUT|PIN|DELP|DP|ENRATIO|RATIO|REFLUX|REBOILER|CONDENSER|COND|CONFIG|CONFIGURATION|EFFICIENCY|EFF|MEFF|PRATIO|RPM|WORK|WTOL|PDESIGN|HEAD|COOLER|ACTEMP|ISOTHERMAL|DT|DPTO|BPTO|UA|LMTD|MITA|HLEAK|TSAME|TDUTY|NUMBER|CELL|TCELL|METHODS|ANGLE|PSUBMERGED|RLIQUID|RCAKE|RHEIGHT|OVERFLOW|UNDERFLOW|FILTRATE|CAKE|LRATIO|WRATIO|VOLUME|VMAX|TMAX|TMIN|ADIABATIC|DPIN|TOUT|TSTR|TIN|LENGTH|DIAMETER|FRICTION|FLOWEFF|TAMBIENT|DPMAX|KFACTOR|VAVG|RROUGHNESS|AROUGH|CALCULATION|ASME|GPSA|PRSWITCH|COPT|SINGLE|MULT|REFRPM|HBASIS|ENERGY|XOPTION|STOP|ISOTHERMAL|VAVG|U|AREA|FT|FTOL|CONFIG|EVALUATE|ESTIMATE|MODEL|DAMP|ERRINC|CUTOFF|IO|ENHANCEDIO|FREEWATER|SIMSTOP|SEPARATE|NOTSEPARATE|TSEPARATE|TNOTSEPARATE|SUPERCEDE|CESTIMATE|LIQU|VAPO|LFEST|VFEST|RTEST|DPCALC|PTOP|DPCOLUMN|PSPEC|CEST|VAVG|POINTS)\\b"
+        }
+      ]
+    },
+    "arithmetic-operators": {
+      "patterns": [
+        {
+          "name": "support.function.arithmetic.proii",
+          "match": "\\b(PLUS|MINUS|TIMES|MULTIPLY|DIVIDE|DIVIDED)\\b"
+        }
+      ]
+    },
+    "thermodynamic-methods": {
+      "patterns": [
+        {
+          "name": "constant.language.method.proii",
+          "match": "\\b(SRK|SRK-HP|SRK-HPR|SRK-LP|SOUR|PETR|PURE|NELS|API|API94|STEAM|SIMSCI|PROCESS|VER6|VER91)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.proii",
+          "begin": "\"",
+          "end": "\""
+        },
+        {
+          "name": "string.quoted.single.proii",
+          "begin": "'",
+          "end": "'"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.scientific.proii",
+          "match": "\\b\\d+(\\.\\d+)?[Ee][+-]?\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.decimal.proii",
+          "match": "\\b\\d+\\.\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.proii",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.proii",
+          "match": "="
+        },
+        {
+          "name": "constant.character.escape.continuation.proii",
+          "match": "&|/&"
+        },
+        {
+          "name": "keyword.operator.separator.proii",
+          "match": "/|,"
+        },
+        {
+          "name": "entity.name.function.operator.arithmetic.proii",
+          "match": "\\+|\\-|\\*|\\/"
+        },
+        {
+          "name": "keyword.operator.comparison.proii",
+          "match": "<|>|<=|>="
+        }
+      ]
+    },
+    "conditionals": {
+      "patterns": [
+        {
+          "name": "keyword.control.conditional.proii",
+          "match": "\\b(IF|THEN|ELSE|ELSEIF|ENDIF|RETURN|CALL)\\b"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "comments": {
+    "lineComment": "$"
+  },
+  "brackets": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"]
+  ],
+  "autoClosingPairs": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"],
+    ["\"", "\""],
+    ["'", "'"]
+  ],
+  "surroundingPairs": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"],
+    ["\"", "\""],
+    ["'", "'"]
+  ],
+  "folding": {
+    "markers": {
+      "start": "^\\s*(UNIT OPERATIONS|COMPONENT DATA|STREAM DATA|THERMODYNAMIC DATA|PROCEDURE|CALCULATOR)",
+      "end": "^\\s*END"
+    }
+  }
+}
