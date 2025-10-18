@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import { ProIIHoverProvider } from './hoverProvider';
+import { StreamNameProvider, semanticTokenLegend } from './streamNameProvider';
 
 /**
  * This method is called when the extension is activated
@@ -22,11 +23,23 @@ export function activate(context: vscode.ExtensionContext) {
         new ProIIHoverProvider()
     );
     
-    // Add hover provider to subscriptions for proper cleanup
+    // Register semantic tokens provider for dynamic stream name highlighting
+    const streamNameProvider = vscode.languages.registerDocumentSemanticTokensProvider(
+        [
+            { scheme: 'file', language: 'proii' },
+            { scheme: 'untitled', language: 'proii' }
+        ],
+        new StreamNameProvider(),
+        semanticTokenLegend
+    );
+    
+    // Add providers to subscriptions for proper cleanup
     context.subscriptions.push(hoverProvider);
+    context.subscriptions.push(streamNameProvider);
     
     // Log successful activation
     console.log('✅ PRO/II Hover Provider registered for .inp, .std, and .out files');
+    console.log('✅ PRO/II Stream Name Provider registered for dynamic name highlighting');
     
     // Optional: Show activation message (disable in production)
     // vscode.window.showInformationMessage('PRO/II Language Support activated with hover tooltips!');

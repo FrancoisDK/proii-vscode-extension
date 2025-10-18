@@ -56,6 +56,18 @@
         "language": "proii",
         "path": "./snippets/proii-snippets.json"
       }
+    ],
+    "semanticTokenTypes": [
+      {
+        "id": "streamName",
+        "description": "Stream name from NAME section (dynamically parsed)"
+      }
+    ],
+    "semanticTokenModifiers": [
+      {
+        "id": "streamReference",
+        "description": "Reference to a defined stream"
+      }
     ]
   },
   "main": "./out/extension.js",
