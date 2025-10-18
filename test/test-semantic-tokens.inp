@@ -1,0 +1,22 @@
+** PRO/II Semantic Token Test File **
+
+This file tests stream name highlighting in a PRO/II input file.
+
+NAME ACI1       ,AIRCOOLER   ,AIR INLET   ,E1105       /*
+     ACI2       ,AIRCOOLER   ,AIR INLET   ,E1106       /*
+     ACI5       ,AIRCOOLER   ,AIR INLET   ,E1107       /*
+
+$ STREAM DATA
+PROP STRM=ACI1, TEMP=25, PRES=1.013
+PROP STRM=ACI2, REFS=ACI1, RATE(W,KG/H)=764587.912
+PROP STRM=ACI5, REFS=ACI1, RATE(W,KG/H)=624669.062
+
+NAME USDP       ,ECPSI US7   ,DIESEL      ,PRODUCT     /*
+
+$ ANOTHER SECTION  
+PROP STRM=USDP, TEMP=50, PRES=2.0
+
+**Expected behavior:**
+- ACI1, ACI2, ACI5, USDP in PROP lines should be highlighted
+- Stream names in NAME lines should NOT be highlighted (definitions, not references)
+- Stream names in continuation lines should NOT be highlighted

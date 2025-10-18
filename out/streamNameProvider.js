@@ -42,6 +42,26 @@ exports.semanticTokenLegend = exports.StreamNameProvider = void 0;
 const vscode = __importStar(require("vscode"));
 class StreamNameProvider {
     /**
+     * Get stream name length configuration from VS Code settings
+     */
+    getStreamNameConfig() {
+        const config = vscode.workspace.getConfiguration('proii.streamNames');
+        const enabledLengths = config.get('enabledLengths', [3, 4, 5, 6]);
+        const minLength = config.get('minLength', 3);
+        const maxLength = config.get('maxLength', 6);
+        return { enabledLengths, minLength, maxLength };
+    }
+    /**
+     * Check if a stream name length should be highlighted based on configuration
+     */
+    shouldHighlightStreamName(streamName) {
+        const config = this.getStreamNameConfig();
+        const length = streamName.length;
+        return config.enabledLengths.includes(length) &&
+            length >= config.minLength &&
+            length <= config.maxLength;
+    }
+    /**
      * Parse ALL NAME sections and extract all stream names
      * PRO/II files can have multiple NAME sections for different unit operations
      */
@@ -64,7 +84,10 @@ class StreamNameProvider {
             const nameLineMatch = nameLine.match(/^[\s]*NAME[\s]+([A-Za-z][A-Za-z0-9_]*)[\s,]/i);
             if (nameLineMatch) {
                 const streamName = nameLineMatch[1].toUpperCase();
-                streamNames.add(streamName);
+                // Use configurable stream name length validation
+                if (this.shouldHighlightStreamName(streamName)) {
+                    streamNames.add(streamName);
+                }
             }
             // THEN: Extract streams from continuation lines
             for (let i = nameStartLine + 1; i < lines.length; i++) {
@@ -83,7 +106,10 @@ class StreamNameProvider {
                 const contMatch = line.match(/^[\s]+([A-Za-z][A-Za-z0-9_]*)[\s]*[,/]/);
                 if (contMatch) {
                     const streamName = contMatch[1].toUpperCase();
-                    streamNames.add(streamName);
+                    // Use configurable stream name length validation
+                    if (this.shouldHighlightStreamName(streamName)) {
+                        streamNames.add(streamName);
+                    }
                     continue;
                 }
                 // No valid stream found - exit this NAME section
@@ -93,84 +119,146 @@ class StreamNameProvider {
         return streamNames;
     }
     /**
-     * Check if a line is within a NAME section
+     * Check if a line is within a NAME section - must be precise to avoid interfering with grammar highlighting
      */
     isInNameSection(lineNum, lines) {
-        // Find which NAME section (if any) this line belongs to
-        let lastNameLine = -1;
-        let nextSectionLine = lines.length;
-        for (let i = 0; i < lineNum; i++) {
+        const line = lines[lineNum];
+        // If this line starts with NAME, it's definitely in a NAME section
+        if (line.match(/^[\s]*NAME[\s]+/i)) {
+            return true;
+        }
+        // Look backwards for the most recent NAME line
+        let nameLineIndex = -1;
+        for (let i = lineNum - 1; i >= 0; i--) {
+            const currentLine = lines[i].trim();
+            // If we find a NAME line, record it
             if (lines[i].match(/^[\s]*NAME[\s]+/i)) {
-                lastNameLine = i;
+                nameLineIndex = i;
+                break;
             }
-        }
-        // If no NAME line before this, not in NAME section
-        if (lastNameLine === -1) {
-            return false;
-        }
-        // Find next section marker after lastNameLine
-        for (let i = lastNameLine + 1; i < lineNum; i++) {
-            if (lines[i].trim().match(/^\$[\s]+[A-Z]/)) {
-                nextSectionLine = i;
+            // If we hit a section boundary or unit operation, stop looking
+            if (currentLine.match(/^\$[\s]+[A-Z]/) ||
+                lines[i].match(/^[\s]*(FLASH|CALC|CALCULATOR|COMPRESSOR|STCALC|COLUMN|PUMP|MIXER|SPLITTER|HX|HCURVE|VALVE|CONTROLLER|OPTIMIZER|SIDESTRIPPER|EQUREACTOR)[\s]/i)) {
                 break;
             }
         }
-        // We're in NAME section if we're between NAME line and next section marker
-        return lineNum > lastNameLine && lineNum < nextSectionLine;
+        // If no NAME line found before this line, not in NAME section
+        if (nameLineIndex === -1) {
+            return false;
+        }
+        // Now check if this line is a valid continuation of that NAME section
+        // NAME continuation lines must start with whitespace followed by identifier and comma
+        if (line.match(/^[\s]+[A-Za-z][A-Za-z0-9_]*[\s]*,/)) {
+            // Verify there's no section boundary between the NAME line and this line
+            for (let i = nameLineIndex + 1; i < lineNum; i++) {
+                const checkLine = lines[i].trim();
+                if (checkLine.match(/^\$[\s]+[A-Z]/) ||
+                    lines[i].match(/^[\s]*(FLASH|CALC|CALCULATOR|COMPRESSOR|STCALC|COLUMN|PUMP|MIXER|SPLITTER|HX|HCURVE|VALVE|CONTROLLER|OPTIMIZER|SIDESTRIPPER|EQUREACTOR)[\s]/i)) {
+                    return false; // Section boundary found, not in NAME section
+                }
+            }
+            return true;
+        }
+        return false;
     }
     /**
      * Find all uses of stream names in the document and return as semantic tokens
      */
     async provideDocumentSemanticTokens(document, token) {
+        const config = this.getStreamNameConfig();
+        const startMessage = `🔍 StreamNameProvider: Starting semantic token analysis for ${document.fileName}`;
+        console.log(startMessage);
+        StreamNameProvider.outputChannel.appendLine(startMessage);
+        const configMessage = `🎛️ Configuration: Lengths [${config.enabledLengths.join(', ')}], Min: ${config.minLength}, Max: ${config.maxLength}`;
+        console.log(configMessage);
+        StreamNameProvider.outputChannel.appendLine(configMessage);
         const streamNames = this.parseNameSection(document);
+        const namesMessage = `🔍 Found ${streamNames.size} stream names: ${Array.from(streamNames).join(', ')}`;
+        console.log(namesMessage);
+        StreamNameProvider.outputChannel.appendLine(namesMessage);
+        console.log(`🔍 StreamNameProvider: Found ${streamNames.size} stream names:`, Array.from(streamNames));
         if (streamNames.size === 0) {
+            console.log('🔍 StreamNameProvider: No streams found, returning empty tokens');
             // Return empty tokens if no streams found
             return new vscode.SemanticTokens(new Uint32Array());
         }
         const builder = new vscode.SemanticTokensBuilder();
-        const text = document.getText();
-        const lines = text.split(/[\r\n]/);
-        // Build regex pattern from stream names (sorted by length, longest first, for greedy matching)
+        // Use VS Code's line access instead of manual splitting to handle line endings properly
+        const lineCount = document.lineCount;
+        // Build lines array for isInNameSection method
+        const lines = [];
+        for (let i = 0; i < lineCount; i++) {
+            lines.push(document.lineAt(i).text);
+        }
+        // Stream names are configurable length (default: 3-6 characters)
         const sortedStreams = Array.from(streamNames).sort((a, b) => b.length - a.length);
+        let tokenCount = 0;
         // Iterate through document to find stream references
-        for (let lineNum = 0; lineNum < lines.length; lineNum++) {
-            const line = lines[lineNum];
-            // Skip lines that are in NAME sections themselves
-            if (this.isInNameSection(lineNum, lines)) {
-                continue;
-            }
+        // Skip NAME sections (where streams are DEFINED) and only highlight in Unit Operations
+        for (let lineNum = 0; lineNum < lineCount; lineNum++) {
+            const lineObj = document.lineAt(lineNum);
+            const line = lineObj.text;
+            const trimmed = line.trim();
             // Skip section headers (lines starting with $)
-            if (line.trim().match(/^\$[\s]*[A-Z]/)) {
+            if (trimmed.match(/^\$[\s]*[A-Z]/)) {
                 continue;
             }
-            // Find stream names in this line
-            // We need to check for stream names as whole tokens (not part of other words)
-            // Look for: space/comma/= before the stream name, and space/comma/=/end-of-line after
+            // Skip NAME sections completely - these are where streams are DEFINED, not referenced
+            if (this.isInNameSection(lineNum, lines)) {
+                const message = `🚫 Skipping NAME section line ${lineNum + 1}: ${trimmed}`;
+                console.log(message);
+                StreamNameProvider.outputChannel.appendLine(message);
+                continue;
+            }
+            // Only highlight in Unit Operations sections where streams are REFERENCED
             for (const streamName of sortedStreams) {
-                // Pattern 1: Stream with required separator before AND after
-                const pattern1 = new RegExp(`([\\s,=\\(\\[])${streamName}([\\s,=\\)\\];/*]|$)`, 'gi');
+                // Use word boundary matching for configured stream lengths
+                const pattern = new RegExp(`\\b${streamName}\\b`, 'gi');
                 let match;
-                while ((match = pattern1.exec(line)) !== null) {
-                    // The stream name is in group 1 match, but we need to offset by the first group
-                    const startChar = match.index + match[1].length; // Skip the leading separator
-                    const length = streamName.length;
-                    builder.push(lineNum, startChar, length, 0, 0); // Type 0 = streamName
-                }
-                // Pattern 2: Stream at start of line (after whitespace) - for continuation lines
-                // Matches: "    QLIQ2,-1.0" or "    LRY , -1#" after /&
-                const pattern2 = new RegExp(`^(\\s*)${streamName}([\\s,=\\)\\];/*]|$)`, 'i');
-                const match2 = line.match(pattern2);
-                if (match2) {
-                    const startChar = match2[1].length;
-                    const length = streamName.length;
-                    builder.push(lineNum, startChar, length, 0, 0); // Type 0 = streamName
+                while ((match = pattern.exec(line)) !== null) {
+                    const startChar = match.index;
+                    const tokenLength = streamName.length;
+                    const actualLineLength = document.lineAt(lineNum).text.length;
+                    // Validate token bounds to prevent "end character > model.getLineLength" error
+                    if (startChar + tokenLength <= actualLineLength && startChar >= 0) {
+                        const message = `🎯 StreamNameProvider: Found token '${streamName}' at line ${lineNum + 1}, col ${startChar + 1}`;
+                        console.log(message);
+                        StreamNameProvider.outputChannel.appendLine(message);
+                        builder.push(lineNum, startChar, tokenLength, 0, 0);
+                        tokenCount++;
+                    }
+                    else {
+                        const errorMessage = `⚠️ Token bounds error: '${streamName}' at line ${lineNum + 1}, start ${startChar}, length ${tokenLength}, actual line length ${actualLineLength}`;
+                        console.warn(errorMessage);
+                        StreamNameProvider.outputChannel.appendLine(errorMessage);
+                    }
                 }
             }
         }
+        const finalMessage = `🔍 StreamNameProvider: Generated ${tokenCount} semantic tokens`;
+        console.log(finalMessage);
+        StreamNameProvider.outputChannel.appendLine(finalMessage);
+        StreamNameProvider.outputChannel.show(); // Show the output channel
         return builder.build();
+    }
+    /**
+     * Check if a line is definitely a stream reference line (not a definition)
+     * Only highlight in these specific contexts to avoid false positives
+     */
+    isDefiniteStreamReferenceLine(trimmedLine) {
+        // Only process lines that start with these specific keywords
+        const streamReferencePatterns = [
+            /^FEED\s+/i, // FEED statements
+            /^PRODUCT\s+/i, // PRODUCT statements  
+            /^PROP\s+STRM\s*=/i, // PROP STRM= statements
+            /^REFS\s*=/i, // REFS= statements
+            /^UID\s*=/i, // UID= statements (when stream name matches)
+        ];
+        return streamReferencePatterns.some(pattern => pattern.test(trimmedLine));
     }
 }
 exports.StreamNameProvider = StreamNameProvider;
+StreamNameProvider.outputChannel = vscode.window.createOutputChannel('PRO/II Stream Highlighting');
 /**
  * Legend for semantic token types and modifiers
  */
