@@ -94,6 +94,21 @@
           "description": "Maximum stream name length to highlight",
           "scope": "resource"
         }
+        ,
+        "proii.format.convertTabsToSpacesOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Convert tabs to spaces when saving PRO/II files (.inp, .std, .out)",
+          "scope": "resource"
+        },
+        "proii.format.tabSize": {
+          "type": "integer",
+          "default": 4,
+          "minimum": 1,
+          "maximum": 8,
+          "description": "Number of spaces to replace each tab with when converting on save",
+          "scope": "resource"
+        }
       }
     },
     "semanticTokenTypes": [
