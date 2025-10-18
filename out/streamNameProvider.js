@@ -42,41 +42,41 @@ exports.semanticTokenLegend = exports.StreamNameProvider = void 0;
 const vscode = __importStar(require("vscode"));
 class StreamNameProvider {
     /**
-     * Parse the NAME section and extract all stream names
+     * Parse ALL NAME sections and extract all stream names
+     * PRO/II files can have multiple NAME sections for different unit operations
      */
     parseNameSection(document) {
         const streamNames = new Set();
         const text = document.getText();
         const lines = text.split(/[\r\n]/);
-        // Find the line starting with "NAME" keyword
-        let nameStartLine = -1;
+        // Find ALL lines starting with "NAME" keyword
+        const nameStartLines = [];
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].match(/^[\s]*NAME[\s]+/i)) {
-                nameStartLine = i;
-                break;
+                nameStartLines.push(i);
             }
         }
-        if (nameStartLine === -1) {
-            return streamNames;
-        }
-        // Process lines after NAME header until we hit a section marker ($ at start)
-        for (let i = nameStartLine + 1; i < lines.length; i++) {
-            const line = lines[i];
-            const trimmed = line.trim();
-            // Stop at next section (lines starting with $ followed by text)
-            if (trimmed.match(/^\$[\s]+[A-Z]/)) {
-                break;
-            }
-            // Skip empty lines
-            if (!trimmed) {
-                continue;
-            }
-            // Extract FIRST WORD on the line (the stream name)
-            // Match: optional whitespace + word (starts with letter, contains alphanumeric/underscore) + (whitespace or comma)
-            const streamMatch = line.match(/^[\s]*([A-Za-z][A-Za-z0-9_]*)[\s,]/);
-            if (streamMatch) {
-                const streamName = streamMatch[1].toUpperCase();
-                streamNames.add(streamName);
+        // Process each NAME section
+        for (const nameStartLine of nameStartLines) {
+            // Process lines after NAME header until we hit a section marker ($ at start)
+            for (let i = nameStartLine + 1; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmed = line.trim();
+                // Stop at next section (lines starting with $ followed by text)
+                if (trimmed.match(/^\$[\s]+[A-Z]/)) {
+                    break;
+                }
+                // Skip empty lines
+                if (!trimmed) {
+                    continue;
+                }
+                // Extract FIRST WORD on the line (the stream name)
+                // Match: optional whitespace + word (starts with letter, contains alphanumeric/underscore) + (whitespace or comma)
+                const streamMatch = line.match(/^[\s]*([A-Za-z][A-Za-z0-9_]*)[\s,]/);
+                if (streamMatch) {
+                    const streamName = streamMatch[1].toUpperCase();
+                    streamNames.add(streamName);
+                }
             }
         }
         return streamNames;
