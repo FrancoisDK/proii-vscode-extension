@@ -1,12 +1,13 @@
 /**
  * Hover Provider for PRO/II Language Support Extension
- * Provides inline documentation tooltips for unit operations, thermodynamic methods, and parameters
+ * Provides inline documentation tooltips for unit operations, thermodynamic methods, parameters, and stream descriptions
  */
 
 import * as vscode from 'vscode';
 import { UNIT_OPERATIONS, UnitOperationData } from './data/unitOperations';
 import { THERMO_METHODS, ThermoMethodData } from './data/thermoMethods';
 import { PARAMETERS, ParameterData } from './data/parameters';
+import { streamDescriptions } from './streamNameProvider';
 
 export class ProIIHoverProvider implements vscode.HoverProvider {
     
@@ -26,6 +27,11 @@ export class ProIIHoverProvider implements vscode.HoverProvider {
         }
         
         const word = document.getText(wordRange).toUpperCase();
+        
+        // Check if it's a stream name with description
+        if (streamDescriptions.has(word)) {
+            return this.createStreamHover(word, streamDescriptions.get(word)!);
+        }
         
         // Check if it's a unit operation (FLASH, COLUMN, etc.)
         if (UNIT_OPERATIONS[word]) {
@@ -56,6 +62,21 @@ export class ProIIHoverProvider implements vscode.HoverProvider {
         }
         
         return undefined;
+    }
+    
+    /**
+     * Create hover tooltip for stream names with descriptions (NEW)
+     */
+    private createStreamHover(name: string, description: string): vscode.Hover {
+        const markdown = new vscode.MarkdownString();
+        markdown.isTrusted = true;
+        markdown.supportHtml = true;
+        
+        // Title with stream icon
+        markdown.appendMarkdown(`### 🌊 Stream: ${name}\n\n`);
+        markdown.appendMarkdown(`**${description}**\n`);
+        
+        return new vscode.Hover(markdown);
     }
     
     /**

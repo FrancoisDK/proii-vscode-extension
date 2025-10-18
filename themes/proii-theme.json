@@ -1,0 +1,23 @@
+{
+  "name": "PRO/II Default Theme",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#1e1e1e"
+  },
+  "tokenColors": [
+    {
+      "scope": "entity.name.type.unit.proii",
+      "settings": {
+        "fontStyle": "",
+        "foreground": "#569CD6"
+      }
+    },
+    {
+      "scope": "variable.parameter.proii",
+      "settings": {
+        "fontStyle": "",
+        "foreground": "#569CD6"
+      }
+    }
+  ]
+}

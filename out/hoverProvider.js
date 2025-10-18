@@ -1,7 +1,7 @@
 "use strict";
 /**
  * Hover Provider for PRO/II Language Support Extension
- * Provides inline documentation tooltips for unit operations, thermodynamic methods, and parameters
+ * Provides inline documentation tooltips for unit operations, thermodynamic methods, parameters, and stream descriptions
  */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -42,6 +42,7 @@ const vscode = __importStar(require("vscode"));
 const unitOperations_1 = require("./data/unitOperations");
 const thermoMethods_1 = require("./data/thermoMethods");
 const parameters_1 = require("./data/parameters");
+const streamNameProvider_1 = require("./streamNameProvider");
 class ProIIHoverProvider {
     /**
      * Main hover provider method called by VS Code
@@ -53,6 +54,10 @@ class ProIIHoverProvider {
             return undefined;
         }
         const word = document.getText(wordRange).toUpperCase();
+        // Check if it's a stream name with description
+        if (streamNameProvider_1.streamDescriptions.has(word)) {
+            return this.createStreamHover(word, streamNameProvider_1.streamDescriptions.get(word));
+        }
         // Check if it's a unit operation (FLASH, COLUMN, etc.)
         if (unitOperations_1.UNIT_OPERATIONS[word]) {
             return this.createUnitOpHover(word, unitOperations_1.UNIT_OPERATIONS[word]);
@@ -78,6 +83,18 @@ class ProIIHoverProvider {
             }
         }
         return undefined;
+    }
+    /**
+     * Create hover tooltip for stream names with descriptions (NEW)
+     */
+    createStreamHover(name, description) {
+        const markdown = new vscode.MarkdownString();
+        markdown.isTrusted = true;
+        markdown.supportHtml = true;
+        // Title with stream icon
+        markdown.appendMarkdown(`### 🌊 Stream: ${name}\n\n`);
+        markdown.appendMarkdown(`**${description}**\n`);
+        return new vscode.Hover(markdown);
     }
     /**
      * Create hover tooltip for unit operations

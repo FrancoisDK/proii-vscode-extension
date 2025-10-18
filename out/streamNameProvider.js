@@ -38,8 +38,10 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.semanticTokenLegend = exports.StreamNameProvider = void 0;
+exports.semanticTokenLegend = exports.StreamNameProvider = exports.streamDescriptions = void 0;
 const vscode = __importStar(require("vscode"));
+// Global map to store stream descriptions accessible to hover provider
+exports.streamDescriptions = new Map();
 class StreamNameProvider {
     /**
      * Check if a word is a PRO/II keyword that should never be highlighted as a stream
@@ -58,7 +60,8 @@ class StreamNameProvider {
             'RETURN', 'PSPEC', 'PTOP', 'PART', 'VAPO', 'LIQU', 'ADIA', 'OPER',
             'SRXSTR', 'TIMES', 'PLUS', 'MINUS', 'DIVIDE', 'VALUE', 'EST2', 'MAXI',
             'MINI', 'ATOL', 'RTOL', 'ITER', 'SOLVE', 'CPARAM', 'RESULT', 'SEQUENCE',
-            'TRAY', 'PASS', 'DPCALC', 'MODEL', 'DP'
+            'TRAY', 'PASS', 'DPCALC', 'MODEL', 'DP', 'HOT', 'COLD', 'OVHD', 'BTMS',
+            'AIRCOOLER', 'INLET', 'OUTLET', 'EFFLUENT', 'STAGE', 'REAC'
         ]);
         return keywords.has(word.toUpperCase());
     }
@@ -88,14 +91,17 @@ class StreamNameProvider {
         const beforeWord = line.substring(0, position).toUpperCase();
         const afterWord = line.substring(position + word.length).toUpperCase();
         const trimmedLine = line.trim().toUpperCase();
-        // Skip lines that are clearly not stream references
-        if (trimmedLine.startsWith('$') ||
-            trimmedLine.startsWith('NAME') ||
-            trimmedLine.startsWith('COMP') ||
-            trimmedLine.startsWith('DEFINE') ||
+        // STRM= patterns (check this FIRST before other exclusions)
+        if (beforeWord.match(/STRM\s*=\s*$/)) { // Removed \b word boundary
+            console.log(`✅ STRM= pattern matched for word: ${word} in line: ${line.trim()}`);
+            return true;
+        }
+        // Skip lines that are clearly not stream references 
+        // BUT only if they don't contain STRM= patterns (which we already checked above)
+        if (!line.toUpperCase().includes('STRM=') && (trimmedLine.startsWith('DEFINE') ||
             trimmedLine.startsWith('CASE') ||
             trimmedLine.startsWith('PRINT') ||
-            trimmedLine.startsWith('SET ')) {
+            trimmedLine.startsWith('SET '))) {
             return false;
         }
         // Skip obvious parameter assignments
@@ -178,9 +184,22 @@ class StreamNameProvider {
                         }
                         potentialStreams.get(streamName).push(location);
                         foundMatches++;
+                        // Debug STRM= patterns specifically
+                        if (line.toUpperCase().includes('STRM=')) {
+                            console.log(`🎯 Found STRM= pattern: ${streamName} in line: ${line.trim()}`);
+                        }
                     }
                     else {
                         contextFailures++;
+                        // Debug failed STRM= patterns
+                        if (line.toUpperCase().includes('STRM=')) {
+                            const beforeWord = line.substring(0, startChar).toUpperCase();
+                            const afterWord = line.substring(startChar + streamName.length).toUpperCase();
+                            console.log(`❌ Failed STRM= context: ${streamName} in line: ${line.trim()}`);
+                            console.log(`   beforeWord: "${beforeWord}"`);
+                            console.log(`   afterWord: "${afterWord}"`);
+                            console.log(`   position: ${startChar}`);
+                        }
                     }
                 }
             }
@@ -217,6 +236,8 @@ class StreamNameProvider {
         const streamNames = new Set();
         const text = document.getText();
         const lines = text.split(/[\r\n]/);
+        // Clear previous descriptions
+        exports.streamDescriptions.clear();
         // Find ALL lines starting with "NAME" keyword
         const nameStartLines = [];
         for (let i = 0; i < lines.length; i++) {
@@ -228,61 +249,84 @@ class StreamNameProvider {
         // Process each NAME section
         for (const nameStartLine of nameStartLines) {
             const nameLine = lines[nameStartLine];
-            // FIRST: Extract stream from NAME line itself
-            // Pattern: NAME keyword, then first stream name
-            // More flexible pattern to handle various spacing
+            // Extract stream name from NAME line itself (first identifier after NAME keyword)
             const nameLineMatch = nameLine.match(/^[\s]*NAME[\s]+([A-Za-z][A-Za-z0-9_]*)/i);
             if (nameLineMatch) {
                 const streamName = nameLineMatch[1].toUpperCase();
-                // Use configurable stream name length validation
-                if (this.shouldHighlightStreamName(streamName)) {
+                if (streamName !== 'NAME' && !this.isProIIKeyword(streamName) && this.shouldHighlightStreamName(streamName)) {
                     streamNames.add(streamName);
-                }
-            }
-            // ALSO: Extract additional streams from the same NAME line (comma-separated)
-            const remainingLine = nameLine.substring(nameLine.toUpperCase().indexOf('NAME') + 4);
-            const additionalStreams = remainingLine.match(/([A-Za-z][A-Za-z0-9_]*)/g);
-            if (additionalStreams) {
-                for (const stream of additionalStreams) {
-                    const streamName = stream.toUpperCase();
-                    if (this.shouldHighlightStreamName(streamName)) {
-                        streamNames.add(streamName);
+                    // Extract description from the rest of the NAME line
+                    // Format: "NAME STREAMNAME     ,DESC1    ,DESC2    ,DESC3       /*"
+                    const descriptionMatch = nameLine.match(/^[\s]*NAME[\s]+[A-Za-z][A-Za-z0-9_]*\s+(.*?)(?:\/\*|$)/);
+                    if (descriptionMatch) {
+                        const descriptionPart = descriptionMatch[1].trim();
+                        // Extract descriptions from comma-separated format
+                        const descriptions = descriptionPart
+                            .split(',')
+                            .map(s => s.trim())
+                            .filter(s => s.length > 0)
+                            .join(' ');
+                        if (descriptions) {
+                            exports.streamDescriptions.set(streamName, descriptions);
+                            console.log(`   📝 Added stream from NAME line: ${streamName} -> "${descriptions}"`);
+                        }
+                        else {
+                            console.log(`   📝 Added stream from NAME line: ${streamName} (no description)`);
+                        }
                     }
                 }
             }
-            // THEN: Extract streams from continuation lines
+            // Collect description lines from continuation
+            let fullDescription = '';
+            // Process continuation lines in this NAME section
             for (let i = nameStartLine + 1; i < lines.length; i++) {
                 const line = lines[i];
                 const trimmed = line.trim();
                 // Stop at next section (lines starting with $ followed by text)
                 if (trimmed.match(/^\$[\s]+[A-Z]/)) {
+                    console.log(`   🔚 Stopped at section boundary: ${trimmed}`);
+                    break;
+                }
+                // Stop if we hit a unit operation keyword  
+                if (trimmed.match(/^(HX|MIXER|SPLITTER|FLASH|PUMP|VALVE|COMPRESSOR|COLUMN|CALCULATOR|STCALC|EQUREACTOR|CONTROLLER|OPTIMIZER|RXGIBBS|PLUGFLOW|CSTR)\b/i)) {
+                    console.log(`   🔚 Stopped at unit operation: ${trimmed}`);
                     break;
                 }
                 // Skip empty lines
                 if (!trimmed) {
                     continue;
                 }
-                // For continuation lines: extract all stream names
-                // Look for lines that start with whitespace and contain identifiers
+                // For continuation lines: extract stream name and description
                 if (line.match(/^[\s]+/)) {
-                    // Extract all potential stream names from this line
-                    const streamMatches = line.match(/([A-Za-z][A-Za-z0-9_]*)/g);
-                    if (streamMatches) {
-                        let foundValidStream = false;
-                        for (const match of streamMatches) {
-                            const streamName = match.toUpperCase();
-                            // Skip obvious keywords, but include potential stream names
-                            if (!this.isProIIKeyword(streamName) && this.shouldHighlightStreamName(streamName)) {
-                                streamNames.add(streamName);
-                                foundValidStream = true;
+                    // Extract stream name and description from this line
+                    // Format: "       STREAMNAME     ,DESC1    ,DESC2    ,DESC3       /*"
+                    const fullLineMatch = line.match(/^\s*([A-Za-z][A-Za-z0-9_]*)\s+(.*?)(?:\/\*|$)/);
+                    if (fullLineMatch) {
+                        const streamName = fullLineMatch[1].toUpperCase();
+                        const descriptionPart = fullLineMatch[2].trim();
+                        if (streamName !== 'NAME' && !this.isProIIKeyword(streamName) && this.shouldHighlightStreamName(streamName)) {
+                            streamNames.add(streamName);
+                            // Extract descriptions from comma-separated format
+                            // Remove leading comma and split by comma, then filter and join
+                            const descriptions = descriptionPart
+                                .split(',')
+                                .map(s => s.trim())
+                                .filter(s => s.length > 0)
+                                .join(' ');
+                            if (descriptions) {
+                                exports.streamDescriptions.set(streamName, descriptions);
+                                console.log(`   📝 Added stream from continuation: ${streamName} -> "${descriptions}"`);
+                            }
+                            else {
+                                console.log(`   📝 Added stream from continuation: ${streamName} (no description)`);
                             }
                         }
-                        if (foundValidStream) {
-                            continue;
-                        }
                     }
+                    continue;
                 }
-                // If we can't find any valid streams, this might be the end of the NAME section
+                // If we reach a line that doesn't start with whitespace and isn't a section boundary,
+                // this might be the end of the NAME section
+                console.log(`   🔚 End of NAME section at: ${trimmed}`);
                 break;
             }
         }
