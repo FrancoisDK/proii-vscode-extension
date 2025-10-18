@@ -27,7 +27,17 @@ export class StreamNameProvider implements vscode.DocumentSemanticTokensProvider
         
         // Process each NAME section
         for (const nameStartLine of nameStartLines) {
-            // Process lines after NAME header until we hit a section marker ($ at start)
+            const nameLine = lines[nameStartLine];
+            
+            // FIRST: Extract stream from NAME line itself
+            // Pattern: NAME keyword, then first stream name, then comma or space+comma
+            const nameLineMatch = nameLine.match(/^[\s]*NAME[\s]+([A-Za-z][A-Za-z0-9_]*)[\s,]/i);
+            if (nameLineMatch) {
+                const streamName = nameLineMatch[1].toUpperCase();
+                streamNames.add(streamName);
+            }
+            
+            // THEN: Extract streams from continuation lines
             for (let i = nameStartLine + 1; i < lines.length; i++) {
                 const line = lines[i];
                 const trimmed = line.trim();
@@ -42,18 +52,53 @@ export class StreamNameProvider implements vscode.DocumentSemanticTokensProvider
                     continue;
                 }
                 
-                // Extract FIRST WORD on the line (the stream name)
-                // Match: optional whitespace + word (starts with letter, contains alphanumeric/underscore) + (whitespace or comma)
-                const streamMatch = line.match(/^[\s]*([A-Za-z][A-Za-z0-9_]*)[\s,]/);
+                // For continuation lines: must start with whitespace, then identifier, then comma or /*
+                // This pattern specifically requires comma or /* to distinguish from keywords
+                const contMatch = line.match(/^[\s]+([A-Za-z][A-Za-z0-9_]*)[\s]*[,/]/);
                 
-                if (streamMatch) {
-                    const streamName = streamMatch[1].toUpperCase();
+                if (contMatch) {
+                    const streamName = contMatch[1].toUpperCase();
                     streamNames.add(streamName);
+                    continue;
                 }
+                
+                // No valid stream found - exit this NAME section
+                break;
             }
         }
         
         return streamNames;
+    }
+
+    /**
+     * Check if a line is within a NAME section
+     */
+    private isInNameSection(lineNum: number, lines: string[]): boolean {
+        // Find which NAME section (if any) this line belongs to
+        let lastNameLine = -1;
+        let nextSectionLine = lines.length;
+        
+        for (let i = 0; i < lineNum; i++) {
+            if (lines[i].match(/^[\s]*NAME[\s]+/i)) {
+                lastNameLine = i;
+            }
+        }
+        
+        // If no NAME line before this, not in NAME section
+        if (lastNameLine === -1) {
+            return false;
+        }
+        
+        // Find next section marker after lastNameLine
+        for (let i = lastNameLine + 1; i < lineNum; i++) {
+            if (lines[i].trim().match(/^\$[\s]+[A-Z]/)) {
+                nextSectionLine = i;
+                break;
+            }
+        }
+        
+        // We're in NAME section if we're between NAME line and next section marker
+        return lineNum > lastNameLine && lineNum < nextSectionLine;
     }
     
     /**
@@ -76,54 +121,46 @@ export class StreamNameProvider implements vscode.DocumentSemanticTokensProvider
         
         // Build regex pattern from stream names (sorted by length, longest first, for greedy matching)
         const sortedStreams = Array.from(streamNames).sort((a, b) => b.length - a.length);
-        const streamPattern = new RegExp(`\\b(${sortedStreams.join('|')})\\b`, 'gi');
         
         // Iterate through document to find stream references
-        let inNameSection = false;
-        let passedNameSection = false;
-        
         for (let lineNum = 0; lineNum < lines.length; lineNum++) {
             const line = lines[lineNum];
-            const lineText = line.toUpperCase();
             
-            // Check if entering NAME section
-            if (lineText.match(/^[\s]*NAME[\s]+/) && !passedNameSection) {
-                inNameSection = true;
+            // Skip lines that are in NAME sections themselves
+            if (this.isInNameSection(lineNum, lines)) {
                 continue;
             }
             
-            // Check if we've left NAME section
-            if (inNameSection && lineText.match(/^[\s]*\$[\s]+[A-Z]/)) {
-                inNameSection = false;
-                passedNameSection = true;
-                continue;
-            }
-            
-            // Skip highlighting in NAME section itself
-            if (inNameSection) {
-                continue;
-            }
-            
-            // Skip if we're past NAME section and on a comment line or section header
-            if (passedNameSection && (lineText.trim().startsWith('$') || 
-                lineText.match(/^[\s]*[A-Z]+[\s]+DATA[\s]*$/))) {
+            // Skip section headers (lines starting with $)
+            if (line.trim().match(/^\$[\s]*[A-Z]/)) {
                 continue;
             }
             
             // Find stream names in this line
-            let match;
-            streamPattern.lastIndex = 0; // Reset regex
-            
-            while ((match = streamPattern.exec(line)) !== null) {
-                const startChar = match.index;
-                const endChar = match.index + match[1].length;
+            // We need to check for stream names as whole tokens (not part of other words)
+            // Look for: space/comma/= before the stream name, and space/comma/= after
+            for (const streamName of sortedStreams) {
+                // Create pattern: word boundary or specific separators before, stream name, word boundary or separators after
+                const pattern = new RegExp(`([\\s,=\\(\\[])${streamName}([\\s,=\\)\\];/*])`, 'gi');
                 
-                // Create semantic token for this stream name
-                const startLine = lineNum;
-                const startCol = startChar;
-                const length = endChar - startChar;
+                let match;
+                while ((match = pattern.exec(line)) !== null) {
+                    // The stream name is in group 1 match, but we need to offset by the first group
+                    const startChar = match.index + match[1].length; // Skip the leading separator
+                    const length = streamName.length;
+                    
+                    builder.push(lineNum, startChar, length, 0, 0); // Type 0 = streamName
+                }
                 
-                builder.push(startLine, startCol, length, 0, 0); // Type 0 = streamName
+                // Also handle stream names at start of line (after whitespace)
+                if (line.match(new RegExp(`^\\s*${streamName}([\\s,=\\)\\];/*])`, 'i'))) {
+                    const match = line.match(new RegExp(`^(\\s*)${streamName}`, 'i'));
+                    if (match) {
+                        const startChar = match[1].length;
+                        const length = streamName.length;
+                        builder.push(lineNum, startChar, length, 0, 0); // Type 0 = streamName
+                    }
+                }
             }
         }
         
