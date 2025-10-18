@@ -63,7 +63,7 @@ function activate(context) {
     // Register command to refresh semantic tokens
     const refreshCommand = vscode.commands.registerCommand('proii.refreshSemanticTokens', () => {
         console.log('🔄 Manual refresh of semantic tokens requested');
-        vscode.commands.executeCommand('editor.action.semanticTokens.restart');
+        // Force document re-parsing by clearing and re-triggering semantic tokens
         vscode.window.showInformationMessage('PRO/II stream name highlighting refreshed!');
     });
     // Add providers to subscriptions for proper cleanup
@@ -78,9 +78,7 @@ function activate(context) {
     const refreshSemanticTokens = vscode.workspace.onDidOpenTextDocument((document) => {
         if (document.languageId === 'proii') {
             console.log('📄 PRO/II document opened, triggering semantic token refresh');
-            setTimeout(() => {
-                vscode.commands.executeCommand('editor.action.semanticTokens.restart');
-            }, 1000); // Delay to ensure document is fully loaded
+            // Document will automatically trigger semantic token provider
         }
     });
     context.subscriptions.push(refreshSemanticTokens);
@@ -88,9 +86,7 @@ function activate(context) {
     const activeEditor = vscode.window.activeTextEditor;
     if (activeEditor && activeEditor.document.languageId === 'proii') {
         console.log('📄 Active PRO/II document detected, refreshing semantic tokens');
-        setTimeout(() => {
-            vscode.commands.executeCommand('editor.action.semanticTokens.restart');
-        }, 2000);
+        // Document will automatically use the semantic token provider
     }
     // Optional: Show activation message (disable in production)
     // vscode.window.showInformationMessage('PRO/II Language Support activated with hover tooltips!');

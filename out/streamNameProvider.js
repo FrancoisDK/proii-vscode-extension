@@ -42,6 +42,154 @@ exports.semanticTokenLegend = exports.StreamNameProvider = void 0;
 const vscode = __importStar(require("vscode"));
 class StreamNameProvider {
     /**
+     * Check if a word is a PRO/II keyword that should never be highlighted as a stream
+     */
+    isProIIKeyword(word) {
+        const keywords = new Set([
+            'TEMP', 'PRES', 'PRESS', 'PRESSURE', 'TEMPERATURE', 'UID', 'NAME', 'AREA',
+            'SET', 'CONFIG', 'CONFIGURE', 'STRM', 'CALC', 'COMP', 'SMR', 'SGVR',
+            'DEFINE', 'CASE', 'REAL', 'INTEGER', 'CALL', 'PRINT', 'OPERATION',
+            'METHOD', 'TYPE', 'FEED', 'FROM', 'TO', 'VAPOR', 'LIQUID', 'BOTTOMS',
+            'DISTILLATE', 'PRODUCT', 'FLASH', 'PUMP', 'MIXER', 'SPLITTER', 'COLUMN',
+            'COMPRESSOR', 'VALVE', 'CONTROLLER', 'CALCULATOR', 'STCALC', 'EQUREACTOR',
+            'NSTG', 'RATE', 'FRAC', 'DUTY', 'DELT', 'SPEC', 'VARY', 'MAXR', 'MINR',
+            'COND', 'REB', 'SIDE', 'REAC', 'CONV', 'SELE', 'METH', 'COOL', 'HEAT',
+            'FPROD', 'FOVHD', 'ROVHD', 'FBTMS', 'RBTMS', 'XOVHD', 'XBTMS',
+            'RETURN', 'PSPEC', 'PTOP', 'PART', 'VAPO', 'LIQU', 'ADIA', 'OPER',
+            'SRXSTR', 'TIMES', 'PLUS', 'MINUS', 'DIVIDE', 'VALUE', 'EST2', 'MAXI',
+            'MINI', 'ATOL', 'RTOL', 'ITER', 'SOLVE', 'CPARAM', 'RESULT', 'SEQUENCE',
+            'TRAY', 'PASS', 'DPCALC', 'MODEL', 'DP'
+        ]);
+        return keywords.has(word.toUpperCase());
+    }
+    /**
+     * Check if a position is within a comment (after $ or %)
+     */
+    isInComment(line, position) {
+        const commentStart = line.indexOf('$');
+        const commentStartPercent = line.indexOf('%');
+        if (commentStart >= 0 && position >= commentStart) {
+            return true;
+        }
+        if (commentStartPercent >= 0 && position >= commentStartPercent) {
+            return true;
+        }
+        return false;
+    }
+    /**
+     * Check if a word appears in a stream context (not just any word)
+     */
+    isInStreamContext(line, word, position) {
+        // Skip if in comment
+        if (this.isInComment(line, position)) {
+            return false;
+        }
+        // Look for specific stream contexts
+        const beforeWord = line.substring(0, position).toUpperCase();
+        const afterWord = line.substring(position + word.length).toUpperCase();
+        const trimmedLine = line.trim().toUpperCase();
+        // Skip lines that are clearly not stream references
+        if (trimmedLine.startsWith('$') ||
+            trimmedLine.startsWith('NAME') ||
+            trimmedLine.startsWith('COMP') ||
+            trimmedLine.startsWith('DEFINE') ||
+            trimmedLine.startsWith('CASE') ||
+            trimmedLine.startsWith('PRINT') ||
+            trimmedLine.startsWith('SET ')) {
+            return false;
+        }
+        // Skip obvious parameter assignments
+        if (beforeWord.match(/\b(TEMP|PRES|PRESSURE|DUTY|RATE|FRAC|SPEC|VARY|NSTG|DELT|UID|METHOD|TYPE|AREA|REAL|INTEGER)\s*=\s*$/)) {
+            return false;
+        }
+        // More permissive approach: Accept most contexts except obvious exclusions
+        // This allows for the wide variety of PRO/II syntax patterns
+        // Always accept these explicit stream contexts
+        if (beforeWord.match(/(FEED|FROM|TO|VAPOR|LIQUID|BOTTOMS|DISTILLATE|PRODUCT|REFS)\s*=\s*$/)) {
+            return true;
+        }
+        // FEED statements without equals (e.g., "FEED SACO, HPSW1")
+        if (beforeWord.match(/\bFEED\s+$/)) {
+            return true;
+        }
+        // PRODUCT statements (various patterns)
+        if (beforeWord.match(/\bPRODUCT\s+(M|V|L|VAPOR|LIQUID)\s*=\s*$/)) {
+            return true;
+        }
+        // Stream in comma-separated lists or after keywords
+        if (afterWord.match(/^\s*[,;]/) || beforeWord.match(/[,\s]\s*$/)) {
+            return true;
+        }
+        // Stream assignments (but exclude obvious parameter assignments already filtered above)
+        if (afterWord.match(/^\s*=/)) {
+            return true;
+        }
+        // Unit operation lines - be more liberal
+        if (trimmedLine.match(/^(MIXER|SPLITTER|FLASH|PUMP|VALVE|COMPRESSOR|COLUMN|CALCULATOR|STCALC|EQUREACTOR|HX|HCURVE|CONTROLLER|OPTIMIZER)\b/)) {
+            return true;
+        }
+        // Accept streams that appear to be in operational contexts
+        // (This is more permissive but relies on our strong keyword exclusions)
+        if (!beforeWord.match(/\b(SELECT|CONFIG|CONFIGURE|CALL|OPERATION|SMR|SGVR)\s*$/)) {
+            return true;
+        }
+        return false;
+    }
+    /**
+     * Find potential stream name references in the document
+     * This scans for words that could be stream names based on context and length
+     */
+    findPotentialStreamReferences(document) {
+        const potentialStreams = new Map();
+        const config = this.getStreamNameConfig();
+        const lineCount = document.lineCount;
+        // Build lines array for isInNameSection method
+        const lines = [];
+        for (let i = 0; i < lineCount; i++) {
+            lines.push(document.lineAt(i).text);
+        }
+        let processedLines = 0;
+        let skippedLines = 0;
+        let foundMatches = 0;
+        let contextFailures = 0;
+        for (let lineNum = 0; lineNum < lineCount; lineNum++) {
+            const line = document.lineAt(lineNum).text;
+            const trimmed = line.trim();
+            // Skip section headers and NAME sections
+            if (trimmed.match(/^\$[\s]*[A-Z]/) || this.isInNameSection(lineNum, lines)) {
+                skippedLines++;
+                continue;
+            }
+            processedLines++;
+            // Look for potential stream patterns in unit operations
+            // Use word boundary pattern to find stream-like words
+            const streamPattern = /\b([A-Za-z][A-Za-z0-9_]*)\b/g;
+            let match;
+            while ((match = streamPattern.exec(line)) !== null) {
+                const streamName = match[1].toUpperCase();
+                const startChar = match.index;
+                // Apply length filters, exclude PRO/II keywords, and check if it's in a valid stream context
+                if (this.shouldHighlightStreamName(streamName) &&
+                    !this.isProIIKeyword(streamName)) {
+                    if (this.isInStreamContext(line, streamName, startChar)) {
+                        const location = { line: lineNum, start: startChar, length: streamName.length };
+                        if (!potentialStreams.has(streamName)) {
+                            potentialStreams.set(streamName, []);
+                        }
+                        potentialStreams.get(streamName).push(location);
+                        foundMatches++;
+                    }
+                    else {
+                        contextFailures++;
+                    }
+                }
+            }
+        }
+        console.log(`📊 Stream reference scan: processed ${processedLines} lines, skipped ${skippedLines} lines`);
+        console.log(`📊 Found ${foundMatches} stream matches, ${contextFailures} context failures`);
+        return potentialStreams;
+    }
+    /**
      * Get stream name length configuration from VS Code settings
      */
     getStreamNameConfig() {
@@ -76,17 +224,30 @@ class StreamNameProvider {
                 nameStartLines.push(i);
             }
         }
+        console.log(`🔍 Found ${nameStartLines.length} NAME sections`);
         // Process each NAME section
         for (const nameStartLine of nameStartLines) {
             const nameLine = lines[nameStartLine];
             // FIRST: Extract stream from NAME line itself
-            // Pattern: NAME keyword, then first stream name, then comma or space+comma
-            const nameLineMatch = nameLine.match(/^[\s]*NAME[\s]+([A-Za-z][A-Za-z0-9_]*)[\s,]/i);
+            // Pattern: NAME keyword, then first stream name
+            // More flexible pattern to handle various spacing
+            const nameLineMatch = nameLine.match(/^[\s]*NAME[\s]+([A-Za-z][A-Za-z0-9_]*)/i);
             if (nameLineMatch) {
                 const streamName = nameLineMatch[1].toUpperCase();
                 // Use configurable stream name length validation
                 if (this.shouldHighlightStreamName(streamName)) {
                     streamNames.add(streamName);
+                }
+            }
+            // ALSO: Extract additional streams from the same NAME line (comma-separated)
+            const remainingLine = nameLine.substring(nameLine.toUpperCase().indexOf('NAME') + 4);
+            const additionalStreams = remainingLine.match(/([A-Za-z][A-Za-z0-9_]*)/g);
+            if (additionalStreams) {
+                for (const stream of additionalStreams) {
+                    const streamName = stream.toUpperCase();
+                    if (this.shouldHighlightStreamName(streamName)) {
+                        streamNames.add(streamName);
+                    }
                 }
             }
             // THEN: Extract streams from continuation lines
@@ -101,21 +262,31 @@ class StreamNameProvider {
                 if (!trimmed) {
                     continue;
                 }
-                // For continuation lines: must start with whitespace, then identifier, then comma or /*
-                // This pattern specifically requires comma or /* to distinguish from keywords
-                const contMatch = line.match(/^[\s]+([A-Za-z][A-Za-z0-9_]*)[\s]*[,/]/);
-                if (contMatch) {
-                    const streamName = contMatch[1].toUpperCase();
-                    // Use configurable stream name length validation
-                    if (this.shouldHighlightStreamName(streamName)) {
-                        streamNames.add(streamName);
+                // For continuation lines: extract all stream names
+                // Look for lines that start with whitespace and contain identifiers
+                if (line.match(/^[\s]+/)) {
+                    // Extract all potential stream names from this line
+                    const streamMatches = line.match(/([A-Za-z][A-Za-z0-9_]*)/g);
+                    if (streamMatches) {
+                        let foundValidStream = false;
+                        for (const match of streamMatches) {
+                            const streamName = match.toUpperCase();
+                            // Skip obvious keywords, but include potential stream names
+                            if (!this.isProIIKeyword(streamName) && this.shouldHighlightStreamName(streamName)) {
+                                streamNames.add(streamName);
+                                foundValidStream = true;
+                            }
+                        }
+                        if (foundValidStream) {
+                            continue;
+                        }
                     }
-                    continue;
                 }
-                // No valid stream found - exit this NAME section
+                // If we can't find any valid streams, this might be the end of the NAME section
                 break;
             }
         }
+        console.log(`🔍 Parsed ${streamNames.size} stream names:`, Array.from(streamNames));
         return streamNames;
     }
     /**
@@ -165,49 +336,23 @@ class StreamNameProvider {
      * Find all uses of stream names in the document and return as semantic tokens
      */
     async provideDocumentSemanticTokens(document, token) {
-        const streamNames = this.parseNameSection(document);
-        if (streamNames.size === 0) {
-            // Return empty tokens if no streams found
-            return new vscode.SemanticTokens(new Uint32Array());
-        }
+        const definedStreams = this.parseNameSection(document);
+        const potentialStreams = this.findPotentialStreamReferences(document);
+        // Debug logging to see what's happening
+        console.log(`🔍 Found ${potentialStreams.size} potential stream references`);
+        const referenceCount = Array.from(potentialStreams.values()).reduce((total, locations) => total + locations.length, 0);
+        console.log(`📍 Total reference locations: ${referenceCount}`);
         const builder = new vscode.SemanticTokensBuilder();
-        // Use VS Code's line access instead of manual splitting to handle line endings properly
-        const lineCount = document.lineCount;
-        // Build lines array for isInNameSection method
-        const lines = [];
-        for (let i = 0; i < lineCount; i++) {
-            lines.push(document.lineAt(i).text);
-        }
-        // Stream names are configurable length (default: 3-6 characters)
-        const sortedStreams = Array.from(streamNames).sort((a, b) => b.length - a.length);
-        let tokenCount = 0;
-        // Iterate through document to find stream references
-        // Skip NAME sections (where streams are DEFINED) and only highlight in Unit Operations
-        for (let lineNum = 0; lineNum < lineCount; lineNum++) {
-            const lineObj = document.lineAt(lineNum);
-            const line = lineObj.text;
-            const trimmed = line.trim();
-            // Skip section headers (lines starting with $)
-            if (trimmed.match(/^\$[\s]*[A-Z]/)) {
-                continue;
-            }
-            // Skip NAME sections completely - these are where streams are DEFINED, not referenced
-            if (this.isInNameSection(lineNum, lines)) {
-                continue;
-            }
-            // Only highlight in Unit Operations sections where streams are REFERENCED
-            for (const streamName of sortedStreams) {
-                // Use word boundary matching for configured stream lengths
-                const pattern = new RegExp(`\\b${streamName}\\b`, 'gi');
-                let match;
-                while ((match = pattern.exec(line)) !== null) {
-                    const startChar = match.index;
-                    const tokenLength = streamName.length;
-                    const actualLineLength = document.lineAt(lineNum).text.length;
-                    // Validate token bounds to prevent "end character > model.getLineLength" error
-                    if (startChar + tokenLength <= actualLineLength && startChar >= 0) {
-                        builder.push(lineNum, startChar, tokenLength, 0, 0);
-                        tokenCount++;
+        // Only highlight DEFINED streams in blue (no red for undefined)
+        for (const [streamName, locations] of potentialStreams.entries()) {
+            const isDefined = definedStreams.has(streamName);
+            // Only add tokens for defined streams
+            if (isDefined) {
+                for (const location of locations) {
+                    const actualLineLength = document.lineAt(location.line).text.length;
+                    // Validate token bounds
+                    if (location.start + location.length <= actualLineLength && location.start >= 0) {
+                        builder.push(location.line, location.start, location.length, 0, 0); // 0 = streamName (blue)
                     }
                 }
             }
@@ -234,7 +379,7 @@ exports.StreamNameProvider = StreamNameProvider;
 /**
  * Legend for semantic token types and modifiers
  */
-exports.semanticTokenLegend = new vscode.SemanticTokensLegend(['streamName'], // types
+exports.semanticTokenLegend = new vscode.SemanticTokensLegend(['streamName'], // types: 0 = defined streams (blue only)
 [''] // modifiers
 );
 //# sourceMappingURL=streamNameProvider.js.map
