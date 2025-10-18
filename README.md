@@ -2,7 +2,7 @@
 
 Comprehensive syntax highlighting, **interactive hover tooltips**, **60+ code snippets**, and language support for PRO/II process simulation files (`.inp`, `.std`, `.out`).
 
-## 🆕 What's New in v1.4.5
+## 🆕 What's New in v1.4.6
 
 ### 🌊 **Stream Description Hover Tooltips** *(NEW!)*
 
@@ -84,11 +84,11 @@ Each tooltip includes:
 
 ## Features
 
-### 🎯 **Hover Tooltips** (v1.4.5)
+### 🎯 **Hover Tooltips** (v1.4.6)
 
 **Instant documentation at your fingertips!** Hover over any keyword or stream to see detailed information without leaving your editor.
 
-#### Stream Descriptions *(NEW in v1.4.5!)*
+#### Stream Descriptions *(NEW in v1.4.6!)*
 Hover over any **stream name** to see:
 - 🌊 Stream identifier and name
 - Complete description from NAME section
@@ -217,7 +217,7 @@ Comprehensive snippets extracted from the PRO/II Keyword Manual. See **[SNIPPETS
 5. Done! The extension is ready to use
 
 ### From VSIX (Manual)
-1. Download `proii-language-support-1.4.5.vsix` from [GitHub Releases](https://github.com/FrancoisDK/proii-vscode-extension/releases)
+1. Download `proii-language-support-1.4.6.vsix` from [GitHub Releases](https://github.com/FrancoisDK/proii-vscode-extension/releases)
 2. Open VS Code
 3. Go to Extensions (`Ctrl+Shift+X`)
 4. Click `...` → `Install from VSIX`
@@ -230,7 +230,7 @@ npm install -g vsce
 npm install
 npm run compile
 vsce package
-code --install-extension proii-language-support-1.4.5.vsix
+code --install-extension proii-language-support-1.4.6.vsix
 ```
 
 ## Usage
