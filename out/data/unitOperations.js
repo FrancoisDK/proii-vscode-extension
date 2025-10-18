@@ -4568,33 +4568,43 @@ Example:
         },
         example: `$ Example 1: Water-gas reaction at equilibrium
 EQUREACTOR  UID=RX1
-  FEED      1,3
-  PRODUCT   V=4
-  OPERATION PHASE=V, TEMPERATURE=1530, ISOTHERMAL
-  RXCALC    MODEL=STOIC
-  RXSTOIC   RXSET=1
-  REACTION  1
-  BASE      COMPONENT=2
+  FEED        1,3
+  PRODUCT     V=4
+  OPERATION   PHASE=V, TEMPERATURE=1530, ISOTHERMAL
+  RXCALC      MODEL=STOIC
+  RXSTOIC     RXSET=1
+  REACTION    1
+  BASE        COMPONENT=2
 
 $ Example 2: Shift reactor with approach
 EQUREACTOR  UID=S1, NAME=SHIFT ONLY
-  FEED      F1
-  PROD      V=V1
-  OPERATION PRESSURE(PSIA)=90, TEMPERATURE(F)=600
-  RXCALC    MODEL=SHIFT
-  REACTION  SHIFT
-  APPROACH  DT=50
+  FEED        F1
+  PROD        V=V1
+  OPERATION   PRESSURE(PSIA)=90, TEMPERATURE(F)=600
+  RXCALC      MODEL=SHIFT
+  REACTION    SHIFT
+  APPROACH    DT=50
 
-$ Example 3: Adiabatic methanator
+$ Example 3: Kinetic procedure with RETURN statement
+EQUREACTOR  UID=TGSIK, NAME=TREAT GAS INLET KINETICS
+  FEED        TGSI
+  DEFINE      P(1) AS STRM=TGSI COMP=6 RATE
+  PROCEDURE
+    REAL RGAS
+    RGAS = 2907260.0              $ Recycle gas flow (Nm3/d)
+    R(1) = RGAS
+  RETURN TGSI
+
+$ Example 4: Adiabatic methanator
 EQUREACTOR  UID=M1, NAME=FIRST STAGE
-  FEED      1
-  PRODUCT   V=V1
-  RXCALC    MODEL=METHANATION
-  OPERATION ADIABATIC
-  REACTION  METHANATION
-  APPROACH  FRACTION=0.90
-  REACTION  SHIFT
-  APPROACH  FRACTION=0.80`,
+  FEED        1
+  PRODUCT     V=V1
+  RXCALC      MODEL=METHANATION
+  OPERATION   ADIABATIC
+  REACTION    METHANATION
+  APPROACH    FRACTION=0.90
+  REACTION    SHIFT
+  APPROACH    FRACTION=0.80`,
         notes: `UID is REQUIRED (unique identifier).
 
 ══════════════════════════════════════════════════════════════════════════════
