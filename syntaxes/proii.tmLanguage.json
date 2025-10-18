@@ -222,18 +222,15 @@
           }
         },
         {
-          "comment": "STRM= followed by stream name",
+          "comment": "STRM= keyword only - stream names handled by semantic tokens for better comma-separated list support",
           "name": "meta.stream-reference-equation.proii",
-          "match": "(STRM)\\s*(=)\\s*([A-Za-z][A-Za-z0-9_]*?)(?:\\s|,|&|\\$|\\)|\\n)",
+          "match": "(STRM)\\s*(=)",
           "captures": {
             "1": {
               "name": "variable.parameter.proii"
             },
             "2": {
               "name": "keyword.operator.assignment.proii"
-            },
-            "3": {
-              "name": "string.unquoted.name.proii"
             }
           }
         },
