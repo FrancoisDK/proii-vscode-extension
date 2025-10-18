@@ -2,7 +2,7 @@
   "name": "proii-language-support",
   "displayName": "PRO/II Language Support",
   "description": "Syntax highlighting, hover tooltips, and language support for PRO/II input and output files (.inp, .std, .out)",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "publisher": "Francois de Klerk",
   "icon": "PRO_II.png",
   "author": "Francois de Klerk",

@@ -300,5 +300,5 @@ The system now correctly:
 
 **Generated**: 2025-10-18  
 **Status**: ✅ **COMPLETE AND PRODUCTION-READY**  
-**VSIX Version**: 1.3.0  
+**VSIX Version**: 1.3.1  
 **Test Pass Rate**: 85.7% (6/7 tests)

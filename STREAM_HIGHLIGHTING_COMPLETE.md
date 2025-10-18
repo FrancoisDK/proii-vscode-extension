@@ -367,4 +367,4 @@ For issues or questions:
 
 **Generated**: 2025-10-18  
 **File**: STREAM_HIGHLIGHTING_COMPLETE.md  
-**Version**: 1.3.0 / VSIX 1.3.1
+**Version**: 1.3.1
