@@ -70,6 +70,38 @@ export function activate(context: vscode.ExtensionContext) {
         // Document will automatically use the semantic token provider
     }
     
+    // Register safe on-save handler to convert tabs to spaces for PRO/II files
+    const onWillSave = vscode.workspace.onWillSaveTextDocument(async (e) => {
+        const doc = e.document;
+        if (doc.languageId !== 'proii') return;
+
+        const config = vscode.workspace.getConfiguration('proii');
+        const enabled = config.get<boolean>('format.convertTabsToSpacesOnSave', true);
+        if (!enabled) return;
+
+        const tabSize = config.get<number>('format.tabSize', 4);
+        const tabReplacement = ' '.repeat(Math.max(1, Math.floor(tabSize)));
+
+        // Build edits by scanning for tabs; avoid saving or making edits if no tabs found
+        const edits: vscode.TextEdit[] = [];
+        for (let i = 0; i < doc.lineCount; i++) {
+            const line = doc.lineAt(i);
+            if (line.text.indexOf('\t') !== -1) {
+                const replaced = line.text.replace(/\t/g, tabReplacement);
+                if (replaced !== line.text) {
+                    edits.push(vscode.TextEdit.replace(line.range, replaced));
+                }
+            }
+        }
+
+        if (edits.length === 0) return;
+
+        // Apply edits using e.waitUntil to avoid triggering nested save events
+        e.waitUntil(Promise.resolve(new vscode.WorkspaceEdit().set(doc.uri, edits)));
+    });
+
+    context.subscriptions.push(onWillSave);
+    
     // Optional: Show activation message (disable in production)
     // vscode.window.showInformationMessage('PRO/II Language Support activated with hover tooltips!');
 }
