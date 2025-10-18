@@ -165,18 +165,25 @@
           "end": "^(?=\\s*(?:TITLE|PROCEDURE|COMPONENT DATA|STREAM DATA|THERMODYNAMIC DATA|UNIT OPERATIONS|[A-Z]{2,}))",
           "patterns": [
             {
-              "name": "meta.result-statement.proii",
-              "match": "^\\s*\\d+\\s*,\\s*(.+?)\\s*(?:/&|\\$|$)",
-              "captures": {
-                "1": { "name": "string.unquoted.result-description.proii" }
-              }
+              "name": "meta.result-line.proii",
+              "begin": "^\\s*(\\d+)\\s*,\\s*",
+              "beginCaptures": {
+                "1": { "name": "constant.numeric.integer.proii" }
+              },
+              "end": "(\\s*/\\s*&\\s*$)|$",
+              "endCaptures": {
+                "1": { "name": "constant.character.escape.continuation.proii" }
+              },
+              "contentName": "string.unquoted.result-description.proii"
             },
             {
-              "name": "meta.result-continued.proii",
-              "match": "^\\s*,\\s*(.+?)\\s*(?:/&|\\$|$)",
-              "captures": {
-                "1": { "name": "string.unquoted.result-description.proii" }
-              }
+              "name": "meta.result-continued-line.proii",
+              "begin": "^\\s*,\\s*",
+              "end": "(\\s*/\\s*&\\s*$)|$",
+              "endCaptures": {
+                "1": { "name": "constant.character.escape.continuation.proii" }
+              },
+              "contentName": "string.unquoted.result-description.proii"
             }
           ]
         }
@@ -185,18 +192,19 @@
     "result-statement": {
       "patterns": [
         {
-          "name": "meta.result-statement.proii",
-          "match": "^\\s*\\d+\\s*,\\s*(.+?)\\s*(?:/&|\\$|$)",
-          "captures": {
-            "1": { "name": "string.unquoted.result-description.proii" }
-          }
+          "name": "meta.result-line.proii",
+          "begin": "^\\s*(\\d+)\\s*,\\s*",
+          "beginCaptures": { "1": { "name": "constant.numeric.integer.proii" } },
+          "end": "(\\s*/\\s*&\\s*$)|$",
+          "endCaptures": { "1": { "name": "constant.character.escape.continuation.proii" } },
+          "contentName": "string.unquoted.result-description.proii"
         },
         {
-          "name": "meta.result-continued.proii",
-          "match": "^\\s*,\\s*(.+?)\\s*(?:/&|\\$|$)",
-          "captures": {
-            "1": { "name": "string.unquoted.result-description.proii" }
-          }
+          "name": "meta.result-continued-line.proii",
+          "begin": "^\\s*,\\s*",
+          "end": "(\\s*/\\s*&\\s*$)|$",
+          "endCaptures": { "1": { "name": "constant.character.escape.continuation.proii" } },
+          "contentName": "string.unquoted.result-description.proii"
         }
       ]
     },
