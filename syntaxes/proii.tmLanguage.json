@@ -165,6 +165,14 @@
           "end": "^(?=\\s*(?:TITLE|PROCEDURE|COMPONENT DATA|STREAM DATA|THERMODYNAMIC DATA|UNIT OPERATIONS|[A-Z]{2,}))",
           "patterns": [
             {
+              "name": "meta.result-inline.proii",
+              "match": "^\\s*RESULT\\s+(\\d+)\\s*,\\s*(.+?)\\s*(?:/&|$)",
+              "captures": {
+                "1": { "name": "constant.numeric.integer.proii" },
+                "2": { "name": "string.unquoted.result-description.proii" }
+              }
+            },
+            {
               "name": "meta.result-line.proii",
               "begin": "^\\s*(\\d+)\\s*,\\s*",
               "beginCaptures": {
