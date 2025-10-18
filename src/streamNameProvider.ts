@@ -7,7 +7,6 @@
 import * as vscode from 'vscode';
 
 export class StreamNameProvider implements vscode.DocumentSemanticTokensProvider {
-    private static outputChannel = vscode.window.createOutputChannel('PRO/II Stream Highlighting');
     
     /**
      * Get stream name length configuration from VS Code settings
@@ -159,25 +158,9 @@ export class StreamNameProvider implements vscode.DocumentSemanticTokensProvider
         document: vscode.TextDocument,
         token: vscode.CancellationToken
     ): Promise<vscode.SemanticTokens> {
-        const config = this.getStreamNameConfig();
-        const startMessage = `🔍 StreamNameProvider: Starting semantic token analysis for ${document.fileName}`;
-        console.log(startMessage);
-        StreamNameProvider.outputChannel.appendLine(startMessage);
-        
-        const configMessage = `🎛️ Configuration: Lengths [${config.enabledLengths.join(', ')}], Min: ${config.minLength}, Max: ${config.maxLength}`;
-        console.log(configMessage);
-        StreamNameProvider.outputChannel.appendLine(configMessage);
-        
         const streamNames = this.parseNameSection(document);
         
-        const namesMessage = `🔍 Found ${streamNames.size} stream names: ${Array.from(streamNames).join(', ')}`;
-        console.log(namesMessage);
-        StreamNameProvider.outputChannel.appendLine(namesMessage);
-        
-        console.log(`🔍 StreamNameProvider: Found ${streamNames.size} stream names:`, Array.from(streamNames));
-        
         if (streamNames.size === 0) {
-            console.log('🔍 StreamNameProvider: No streams found, returning empty tokens');
             // Return empty tokens if no streams found
             return new vscode.SemanticTokens(new Uint32Array());
         }
@@ -211,9 +194,6 @@ export class StreamNameProvider implements vscode.DocumentSemanticTokensProvider
             
             // Skip NAME sections completely - these are where streams are DEFINED, not referenced
             if (this.isInNameSection(lineNum, lines)) {
-                const message = `🚫 Skipping NAME section line ${lineNum + 1}: ${trimmed}`;
-                console.log(message);
-                StreamNameProvider.outputChannel.appendLine(message);
                 continue;
             }
             
@@ -230,24 +210,13 @@ export class StreamNameProvider implements vscode.DocumentSemanticTokensProvider
                     
                     // Validate token bounds to prevent "end character > model.getLineLength" error
                     if (startChar + tokenLength <= actualLineLength && startChar >= 0) {
-                        const message = `🎯 StreamNameProvider: Found token '${streamName}' at line ${lineNum + 1}, col ${startChar + 1}`;
-                        console.log(message);
-                        StreamNameProvider.outputChannel.appendLine(message);
                         builder.push(lineNum, startChar, tokenLength, 0, 0);
                         tokenCount++;
-                    } else {
-                        const errorMessage = `⚠️ Token bounds error: '${streamName}' at line ${lineNum + 1}, start ${startChar}, length ${tokenLength}, actual line length ${actualLineLength}`;
-                        console.warn(errorMessage);
-                        StreamNameProvider.outputChannel.appendLine(errorMessage);
                     }
                 }
             }
         }
         
-        const finalMessage = `🔍 StreamNameProvider: Generated ${tokenCount} semantic tokens`;
-        console.log(finalMessage);
-        StreamNameProvider.outputChannel.appendLine(finalMessage);
-        StreamNameProvider.outputChannel.show(); // Show the output channel
         return builder.build();
     }
     
