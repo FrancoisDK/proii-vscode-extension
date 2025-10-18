@@ -72,10 +72,6 @@ export function activate(context: vscode.ExtensionContext) {
     
     // Optional: Show activation message (disable in production)
     // vscode.window.showInformationMessage('PRO/II Language Support activated with hover tooltips!');
-    
-    
-    // Optional: Show activation message (disable in production)
-    // vscode.window.showInformationMessage('PRO/II Language Support activated with hover tooltips!');
 }
 
 /**
