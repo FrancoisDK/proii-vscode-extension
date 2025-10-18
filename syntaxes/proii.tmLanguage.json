@@ -154,15 +154,48 @@
         }
       ]
     },
+    "result-block": {
+      "patterns": [
+        {
+          "name": "meta.result-block.proii",
+          "begin": "^\\s*(RESULT)\\b",
+          "beginCaptures": {
+            "1": { "name": "keyword.control.proii" }
+          },
+          "end": "^(?=\\s*(?:TITLE|PROCEDURE|COMPONENT DATA|STREAM DATA|THERMODYNAMIC DATA|UNIT OPERATIONS|[A-Z]{2,}))",
+          "patterns": [
+            {
+              "name": "meta.result-statement.proii",
+              "match": "^\\s*\\d+\\s*,\\s*(.+?)\\s*(?:/&|\\$|$)",
+              "captures": {
+                "1": { "name": "string.unquoted.result-description.proii" }
+              }
+            },
+            {
+              "name": "meta.result-continued.proii",
+              "match": "^\\s*,\\s*(.+?)\\s*(?:/&|\\$|$)",
+              "captures": {
+                "1": { "name": "string.unquoted.result-description.proii" }
+              }
+            }
+          ]
+        }
+      ]
+    },
     "result-statement": {
       "patterns": [
         {
           "name": "meta.result-statement.proii",
           "match": "^\\s*\\d+\\s*,\\s*(.+?)\\s*(?:/&|\\$|$)",
           "captures": {
-            "1": {
-              "name": "string.unquoted.result-description.proii"
-            }
+            "1": { "name": "string.unquoted.result-description.proii" }
+          }
+        },
+        {
+          "name": "meta.result-continued.proii",
+          "match": "^\\s*,\\s*(.+?)\\s*(?:/&|\\$|$)",
+          "captures": {
+            "1": { "name": "string.unquoted.result-description.proii" }
           }
         }
       ]
