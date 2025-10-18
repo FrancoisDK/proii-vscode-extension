@@ -2,11 +2,23 @@
 
 Comprehensive syntax highlighting, **interactive hover tooltips**, **60+ code snippets**, and language support for PRO/II process simulation files (`.inp`, `.std`, `.out`).
 
-## 🆕 What's New in v1.3.1
+## 🆕 What's New in v1.4.1
 
-### ✨ **Semantic Token-Based Stream Name Highlighting!**
+### ✨ **Simplified Stream Name Highlighting!**
 
-Revolutionary new feature that automatically highlights all stream names throughout your PRO/II files with intelligent multi-section support!
+Streamlined semantic token-based highlighting that focuses on defined streams only with enhanced context detection!
+
+**Key Features:**
+- 🎯 **Blue-Only Highlighting**: Clean, professional highlighting for defined streams only
+- 📍 **Enhanced Context Detection**: Improved recognition of stream references in unit operations
+- ✅ **Smart Validation**: Comprehensive keyword exclusions prevent false positives
+- ⚡ **High Performance**: Optimized context detection for better performance
+
+**Key Improvements:**
+- ✓ Removed red highlighting for undefined streams (cleaner interface)
+- ✓ More permissive context detection (better stream recognition)
+- ✓ Enhanced debugging and troubleshooting capabilities
+- ✓ Professional documentation without specific file references
 
 **Key Features:**
 - 🎯 **Multi-Section Parsing**: Correctly handles files with multiple NAME sections (tested with 3 sections in real PRO/II files)
@@ -20,7 +32,7 @@ Revolutionary new feature that automatically highlights all stream names through
 - ✓ 85.7% test pass rate (6/7 tests)
 - ✓ Comprehensive test suite included
 
-**Try it:** Open any `.inp` file with stream definitions → Stream names automatically highlighted in orange/tan color!
+**Try it:** Open any `.inp` file with stream definitions → Defined stream names automatically highlighted in blue!
 
 ### New Documentation:
 - 📄 `TEST_STREAM_HIGHLIGHTING.md` - Comprehensive test report with 8 sections
