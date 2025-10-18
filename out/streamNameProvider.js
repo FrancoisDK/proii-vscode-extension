@@ -145,25 +145,25 @@ class StreamNameProvider {
             }
             // Find stream names in this line
             // We need to check for stream names as whole tokens (not part of other words)
-            // Look for: space/comma/= before the stream name, and space/comma/= after
+            // Look for: space/comma/= before the stream name, and space/comma/=/end-of-line after
             for (const streamName of sortedStreams) {
-                // Create pattern: word boundary or specific separators before, stream name, word boundary or separators after
-                const pattern = new RegExp(`([\\s,=\\(\\[])${streamName}([\\s,=\\)\\];/*])`, 'gi');
+                // Pattern 1: Stream with required separator before AND after
+                const pattern1 = new RegExp(`([\\s,=\\(\\[])${streamName}([\\s,=\\)\\];/*]|$)`, 'gi');
                 let match;
-                while ((match = pattern.exec(line)) !== null) {
+                while ((match = pattern1.exec(line)) !== null) {
                     // The stream name is in group 1 match, but we need to offset by the first group
                     const startChar = match.index + match[1].length; // Skip the leading separator
                     const length = streamName.length;
                     builder.push(lineNum, startChar, length, 0, 0); // Type 0 = streamName
                 }
-                // Also handle stream names at start of line (after whitespace)
-                if (line.match(new RegExp(`^\\s*${streamName}([\\s,=\\)\\];/*])`, 'i'))) {
-                    const match = line.match(new RegExp(`^(\\s*)${streamName}`, 'i'));
-                    if (match) {
-                        const startChar = match[1].length;
-                        const length = streamName.length;
-                        builder.push(lineNum, startChar, length, 0, 0); // Type 0 = streamName
-                    }
+                // Pattern 2: Stream at start of line (after whitespace) - for continuation lines
+                // Matches: "    QLIQ2,-1.0" or "    LRY , -1#" after /&
+                const pattern2 = new RegExp(`^(\\s*)${streamName}([\\s,=\\)\\];/*]|$)`, 'i');
+                const match2 = line.match(pattern2);
+                if (match2) {
+                    const startChar = match2[1].length;
+                    const length = streamName.length;
+                    builder.push(lineNum, startChar, length, 0, 0); // Type 0 = streamName
                 }
             }
         }
