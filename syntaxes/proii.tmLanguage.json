@@ -20,6 +20,9 @@
       "include": "#name-statement"
     },
     {
+      "include": "#result-statement"
+    },
+    {
       "include": "#section-headers"
     },
     {
@@ -148,6 +151,19 @@
               "match": "/\\*"
             }
           ]
+        }
+      ]
+    },
+    "result-statement": {
+      "patterns": [
+        {
+          "name": "meta.result-statement.proii",
+          "match": "^\\s*\\d+\\s*,\\s*(.+?)\\s*(?:/&|\\$|$)",
+          "captures": {
+            "1": {
+              "name": "string.unquoted.result-description.proii"
+            }
+          }
         }
       ]
     },

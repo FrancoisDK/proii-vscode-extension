@@ -127,9 +127,15 @@
           }
         }
       },
-      "[proii]": {
+      "[Default Dark Modern]": {
         "editor.tokenColorCustomizations": {
           "textMateRules": [
+            {
+              "scope": "string.unquoted.result-description.proii",
+              "settings": {
+                "foreground": "#6A9955"
+              }
+            },
             {
               "scope": "entity.name.type.unit.proii",
               "settings": {
