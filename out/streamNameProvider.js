@@ -158,11 +158,35 @@ class StreamNameProvider {
         let skippedLines = 0;
         let foundMatches = 0;
         let contextFailures = 0;
+        // Precompute RESULT block ranges to avoid tokenizing descriptions inside them
+        const resultRanges = [];
+        for (let i = 0; i < lineCount; i++) {
+            const t = lines[i].trim().toUpperCase();
+            if (t.startsWith('RESULT')) {
+                // capture block until PROCEDURE or blank line or a non-continuation line
+                let j = i + 1;
+                while (j < lineCount) {
+                    const ln = lines[j];
+                    if (ln.trim() === '' || ln.trim().match(/^[A-Z][A-Z\s]+/) || ln.trim().startsWith('PROCEDURE')) {
+                        break;
+                    }
+                    j++;
+                }
+                resultRanges.push({ start: i, end: j - 1 });
+            }
+        }
+        const isInResultRange = (ln) => {
+            return resultRanges.some(r => ln >= r.start && ln <= r.end);
+        };
         for (let lineNum = 0; lineNum < lineCount; lineNum++) {
             const line = document.lineAt(lineNum).text;
             const trimmed = line.trim();
-            // Skip section headers and NAME sections
+            // Skip section headers, NAME sections and RESULT descriptions
             if (trimmed.match(/^\$[\s]*[A-Z]/) || this.isInNameSection(lineNum, lines)) {
+                skippedLines++;
+                continue;
+            }
+            if (isInResultRange(lineNum)) {
                 skippedLines++;
                 continue;
             }
