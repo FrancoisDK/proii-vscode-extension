@@ -109,6 +109,37 @@
           "description": "Number of spaces to replace each tab with when converting on save",
           "scope": "resource"
         }
+        ,
+        "proii.format.alignColumnsOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Align unit operation, UID and parameters to fixed column positions on save",
+          "scope": "resource"
+        },
+        "proii.format.unitStartColumn": {
+          "type": "integer",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 80,
+          "description": "Start column for unit operation keywords (1-based)",
+          "scope": "resource"
+        },
+        "proii.format.uidColumn": {
+          "type": "integer",
+          "default": 15,
+          "minimum": 1,
+          "maximum": 120,
+          "description": "Start column for UID field (1-based)",
+          "scope": "resource"
+        },
+        "proii.format.parameterStartColumn": {
+          "type": "integer",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 120,
+          "description": "Start column for parameters on unit operation lines (1-based)",
+          "scope": "resource"
+        }
       }
     },
     "semanticTokenTypes": [
