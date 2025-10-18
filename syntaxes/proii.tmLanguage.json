@@ -183,48 +183,39 @@
     "stream-reference": {
       "patterns": [
         {
-          "comment": "FEED followed by stream name (single stream)",
+          "comment": "FEED keyword only - stream names handled by semantic tokens",
           "name": "meta.stream-reference.proii",
-          "match": "^\\s*(FEED)\\s+([A-Za-z][A-Za-z0-9_]*?)(?:\\s|,|&|\\$|$)",
+          "match": "^\\s*(FEED)\\b",
           "captures": {
             "1": {
               "name": "variable.parameter.proii"
-            },
-            "2": {
-              "name": "string.unquoted.name.proii"
             }
           }
         },
         {
-          "comment": "PROD m= followed by stream name",
+          "comment": "PROD keyword only - stream names handled by semantic tokens",
           "name": "meta.stream-reference-prod.proii",
-          "match": "\\b(PROD)\\s+m\\s*=\\s*([A-Za-z][A-Za-z0-9_]*?)(?:\\s|,|&|\\$|$)",
+          "match": "\\b(PROD)\\b",
           "captures": {
             "1": {
               "name": "variable.parameter.proii"
-            },
-            "2": {
-              "name": "string.unquoted.name.proii"
             }
           }
         },
         {
-          "comment": "RETURN followed by stream name",
+          "comment": "RETURN keyword only - stream names handled by semantic tokens",
           "name": "meta.stream-reference-return.proii",
-          "match": "\\b(RETURN)\\s+([A-Za-z][A-Za-z0-9_]*?)(?:\\s|,|&|\\$|$)",
+          "match": "\\b(RETURN)\\b",
           "captures": {
             "1": {
               "name": "keyword.control.conditional.proii"
-            },
-            "2": {
-              "name": "string.unquoted.name.proii"
             }
           }
         },
         {
-          "comment": "STRM= keyword only - stream names handled by semantic tokens for better comma-separated list support",
+          "comment": "STRM keyword only - stream names handled by semantic tokens",
           "name": "meta.stream-reference-equation.proii",
-          "match": "(STRM)\\s*(=)",
+          "match": "\\b(STRM)\\s*(=)",
           "captures": {
             "1": {
               "name": "variable.parameter.proii"
@@ -235,18 +226,15 @@
           }
         },
         {
-          "comment": "Stream reference in CALC expressions (e.g., CALC=HDST R(2))",
+          "comment": "CALC keyword only - stream references handled by semantic tokens",
           "name": "meta.stream-reference-calc.proii",
-          "match": "(CALC)\\s*(=)\\s*([A-Za-z][A-Za-z0-9_]*)(?=\\s+[A-Z]|\\s*\\)|\\s*$|\\s*&|\\s*\\$)",
+          "match": "\\b(CALC)\\s*(=)",
           "captures": {
             "1": {
               "name": "variable.parameter.proii"
             },
             "2": {
               "name": "keyword.operator.assignment.proii"
-            },
-            "3": {
-              "name": "string.unquoted.name.proii"
             }
           }
         }
