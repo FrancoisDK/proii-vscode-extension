@@ -183,8 +183,9 @@
     "stream-reference": {
       "patterns": [
         {
+          "comment": "FEED followed by stream name (single stream)",
           "name": "meta.stream-reference.proii",
-          "match": "\\b(FEED|PROD|PRODUCT|FPROD|STRM|DEFINE|RETURN)\\s+([A-Za-z0-9_]+)",
+          "match": "^\\s*(FEED)\\s+([A-Za-z][A-Za-z0-9_]*?)(?:\\s|,|&|\\$|$)",
           "captures": {
             "1": {
               "name": "variable.parameter.proii"
@@ -195,8 +196,51 @@
           }
         },
         {
+          "comment": "PROD m= followed by stream name",
+          "name": "meta.stream-reference-prod.proii",
+          "match": "\\b(PROD)\\s+m\\s*=\\s*([A-Za-z][A-Za-z0-9_]*?)(?:\\s|,|&|\\$|$)",
+          "captures": {
+            "1": {
+              "name": "variable.parameter.proii"
+            },
+            "2": {
+              "name": "string.unquoted.name.proii"
+            }
+          }
+        },
+        {
+          "comment": "RETURN followed by stream name",
+          "name": "meta.stream-reference-return.proii",
+          "match": "\\b(RETURN)\\s+([A-Za-z][A-Za-z0-9_]*?)(?:\\s|,|&|\\$|$)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.conditional.proii"
+            },
+            "2": {
+              "name": "string.unquoted.name.proii"
+            }
+          }
+        },
+        {
+          "comment": "STRM= followed by stream name",
           "name": "meta.stream-reference-equation.proii",
-          "match": "(STRM)\\s*(=)\\s*([A-Za-z0-9_]+)",
+          "match": "(STRM)\\s*(=)\\s*([A-Za-z][A-Za-z0-9_]*?)(?:\\s|,|&|\\$|\\)|\\n)",
+          "captures": {
+            "1": {
+              "name": "variable.parameter.proii"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.proii"
+            },
+            "3": {
+              "name": "string.unquoted.name.proii"
+            }
+          }
+        },
+        {
+          "comment": "Stream reference in CALC expressions (e.g., CALC=HDST R(2))",
+          "name": "meta.stream-reference-calc.proii",
+          "match": "(CALC)\\s*(=)\\s*([A-Za-z][A-Za-z0-9_]*)(?=\\s+[A-Z]|\\s*\\)|\\s*$|\\s*&|\\s*\\$)",
           "captures": {
             "1": {
               "name": "variable.parameter.proii"

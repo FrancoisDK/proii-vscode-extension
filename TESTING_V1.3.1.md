@@ -2,6 +2,10 @@
 
 ## 🎉 New in v1.3.1
 - **Stream Reference Highlighting**: Stream names now have the same orange/tan color as the NAME section
+  - Smart context-aware patterns (FEED, PROD m=, RETURN, STRM=, CALC=)
+  - Only colors actual stream names, NOT numeric values
+  - Stream names must start with letter: A-Z, a-z
+  - Can contain letters, numbers, underscores: [A-Za-z0-9_]*
 - **EQUREACTOR Syntax**: Now highlighted in key color (green) like other unit operations
 - **RATIO Operator**: Added to arithmetic operators (bright yellow)
 - **Improved Examples**: Updated EQUREACTOR with proper spacing and RETURN TGSI example
@@ -33,10 +37,24 @@ FLASH       UID=R1IN, NAME=FIRST REACTOR BED INLET
 ```
 
 **Verify:**
-- ✅ `HTDF` (after FEED) = orange/tan color
-- ✅ `R1IN` (after PROD) = orange/tan color  
-- ✅ `HDST` (in CALC) = orange/tan color
+- ✅ `HTDF` (after FEED) = orange/tan color (stream name)
+- ✅ `R1IN` (after PROD M=) = orange/tan color (stream name)
+- ✅ `HDST` (in CALC=) = orange/tan color (stream name in calculation)
+- ✅ Numbers like `350` after `TEMP=` = orange color (number, NOT stream color)
+- ✅ Parameters like `PRES`, `TEMP` = light blue/cyan (parameters, not streams)
 - ✅ Matches NAME section colors from your file
+
+### Stream Reference Patterns (v1.3.1 Context-Aware):
+- **FEED keyword**: `FEED HTDF` → HTDF colored
+- **PROD m= format**: `PROD m=R1IN` → R1IN colored
+- **RETURN statement**: `RETURN TGSI` → TGSI colored
+- **STRM= assignment**: `STRM=HDST` → HDST colored
+- **CALC= expressions**: `CALC=HDST R(2)` → HDST colored
+
+### NOT Colored (Correct Behavior):
+- `TEMP=350` → 350 is NOT stream colored (it's a number)
+- `PRES=100` → 100 is NOT stream colored (it's a number)
+- `METHOD=SRK` → SRK is NOT colored by stream pattern (it's a method keyword)
 
 ### 2. EQUREACTOR Unit Operation
 **Test with:**
