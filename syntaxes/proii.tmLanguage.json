@@ -29,6 +29,9 @@
       "include": "#unit-operations"
     },
     {
+      "include": "#stream-reference"
+    },
+    {
       "include": "#arithmetic-operators"
     },
     {
@@ -174,6 +177,37 @@
         {
           "name": "entity.name.type.unit.proii",
           "match": "^\\s*(FLASH|CALC|CALCULATOR|COMPRESSOR|STCALC|COLUMN|PUMP|MIXER|SPLITTER|HX|HCURVE|VALVE|CONTROLLER|OPTIMIZER|SIDESTRIPPER|EQUREACTOR)\\b"
+        }
+      ]
+    },
+    "stream-reference": {
+      "patterns": [
+        {
+          "name": "meta.stream-reference.proii",
+          "match": "\\b(FEED|PROD|PRODUCT|FPROD|STRM|DEFINE|RETURN)\\s+([A-Za-z0-9_]+)",
+          "captures": {
+            "1": {
+              "name": "variable.parameter.proii"
+            },
+            "2": {
+              "name": "string.unquoted.name.proii"
+            }
+          }
+        },
+        {
+          "name": "meta.stream-reference-equation.proii",
+          "match": "(STRM)\\s*(=)\\s*([A-Za-z0-9_]+)",
+          "captures": {
+            "1": {
+              "name": "variable.parameter.proii"
+            },
+            "2": {
+              "name": "keyword.operator.assignment.proii"
+            },
+            "3": {
+              "name": "string.unquoted.name.proii"
+            }
+          }
         }
       ]
     },
