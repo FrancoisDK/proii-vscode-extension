@@ -1,0 +1,30 @@
+Release v1.4.7 - Patch release
+
+Summary:
+- Adds DEFINE statement hover and examples.
+- Adds operator synonyms for textual arithmetic: PLUS, SUM, ADD, MINUS, DIFF, SUBT, TIMES, MULTIPLY, DIVIDE, DIVIDEBY, RATIO, OVER.
+- Ensures CALC and CALCULATOR parity (as unit operations and parameters).
+- Updates PRES parameter hover with explicit default units: SI=kPa, Metric=kg/cm2, English=PSIA (absolute).
+- Manual-accurate CONTROLLER hover with example; removed types section.
+- Documentation updates: README and CHANGELOG for v1.4.7.
+
+Files changed summary:
+- src/data/parameters.ts (new entries + PRES update)
+- src/data/unitOperations.ts (operator lists)
+- syntaxes/proii.tmLanguage.json (grammar updates for operator words)
+- src/streamNameProvider.ts (keyword exclusions updated)
+- README.md (v1.4.7 notes)
+- CHANGELOG.md (v1.4.7 entry)
+- package.json (version bumped to 1.4.7)
+
+How to test:
+1. Install VSIX or run the extension in Extension Development Host.
+2. Hover over DEFINE, operator words (PLUS/MINUS/TIMES/etc.), PRES, and CONTROLLER to confirm updated tooltips.
+3. Open a PRO/II .inp file with streams and confirm stream name parsing and hover behavior is unchanged.
+
+Notes:
+- Compiled and packaged proii-language-support-1.4.7.vsix.
+- Branch: simplified-blue-highlighting
+- Tag: v1.4.7
+
+Please review and merge to main when ready.
