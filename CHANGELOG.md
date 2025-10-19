@@ -4,6 +4,21 @@ All notable changes to the "proii-language-support" extension will be documented
 
 ## [1.3.1] - 2025-10-18
 
+## [1.4.7] - 2025-10-19
+
+### Added
+- DEFINE hover support: Adds manual-accurate tooltips and examples for DEFINE statements referencing streams and unit calculations.
+- Operator synonyms: Recognizes textual operators (PLUS, SUM, ADD, MINUS, DIFF, SUBT, TIMES, MULTIPLY, DIVIDE, DIVIDEBY, RATIO, OVER) for DEFINE/SPEC arithmetic.
+
+### Changed
+- PRES parameter: Clarified default units in hover (SI=kPa, Metric=kg/cm2, English=PSIA absolute) and improved guidance on absolute vs gauge pressure.
+- CONTROLLER tooltip: Updated to match PRO/II manual example and removed incorrect 'types' subsection.
+- CALC/CALCULATOR: Ensured parity in behavior both as unit operations and parameters (hover and grammar updates).
+
+### Fixed
+- Grammar and stream/highlight integration for operator words and DEFINE expression recognition.
+
+
 ### Added
 - **✨ Semantic Token-Based Stream Name Highlighting** - Revolutionary feature that automatically highlights all stream names referenced throughout PRO/II files:
   - **Multi-NAME Section Support**: Correctly parses and extracts streams from multiple NAME sections in single file

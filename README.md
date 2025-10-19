@@ -1,3 +1,18 @@
+## 🆕 What's New in v1.4.7 (2025-10-19)
+
+### Minor improvements and documentation updates
+
+ - Added: DEFINE statement hover and example support for stream- and unit-based parameter definitions.
+ - Added: Full operator synonyms for arithmetic expressions used in DEFINE/SPEC: PLUS, SUM, ADD, MINUS, DIFF, SUBT, TIMES, MULTIPLY, DIVIDE, DIVIDEBY, RATIO, OVER.
+ - Updated: PRES hover default units and guidance (SI: kPa; Metric: kg/cm2; English: PSIA absolute).
+ - Improved: CONTROLLER hover to match manual example and removed incorrect "types" section.
+ - Ensured: CALC and CALCULATOR behave identically as unit operations and parameters.
+
+These updates refine hover accuracy and documentation and improve arithmetic and DEFINE support throughout the extension.
+### Release Notes:
+ - 📄 `RELEASE_v1.4.6.md` - Complete changelog with technical details
+ - 📄 `TEST_STREAM_HIGHLIGHTING.md` - Comprehensive test report
+ - 🧪 `test-stream-highlighting.js` - Integration test script
 # PRO/II Language Support for VS Code
 
 Comprehensive syntax highlighting, **interactive hover tooltips**, **60+ code snippets**, and language support for PRO/II process simulation files (`.inp`, `.std`, `.out`).

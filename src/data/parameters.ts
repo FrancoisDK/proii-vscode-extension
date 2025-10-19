@@ -9,6 +9,7 @@ export interface ParameterData {
     typical_range?: string;
     related?: string[];
     tip?: string;
+    note?: string;
 }
 
 export const PARAMETERS: { [key: string]: ParameterData } = {
@@ -22,10 +23,10 @@ export const PARAMETERS: { [key: string]: ParameterData } = {
 
     'PRES': {
         description: 'Pressure specification',
-        units: ['BAR (bar)', 'KPA (kilopascal)', 'PSI (pounds/inch²)', 'ATM (atmosphere)', 'MMHG (mm mercury)'],
-        typical_range: '0.1 to 100 bar for typical processes',
+        units: ['SI (default): kPa (kilopascal)', 'METRIC: kg/cm2', 'ENGLISH (default absolute): PSIA (pounds/in², absolute)', 'BAR (bar)', 'MMHG (mm mercury)'],
+        typical_range: '≈100 kPa (1 bar) is common; processes often 0.1 to 100 bar equivalent',
         related: ['DELP', 'VFRAC'],
-        tip: 'Gauge pressure by default. Use PSIA for absolute pressure. Consider vacuum for < 1 bar.'
+        tip: 'Default units: SI -> kPa; Metric -> kg/cm2; English -> psia (absolute values). PRO/II treats pressure qualifiers as absolute when PSIA/ABS used; otherwise gauge may be assumed in some contexts. Use explicit units to avoid ambiguity.'
     },
 
     'DUTY': {
@@ -76,6 +77,14 @@ export const PARAMETERS: { [key: string]: ParameterData } = {
         typical_range: '5 to 100 stages typical, 20-40 most common',
         related: ['FEED', 'PROD'],
         tip: 'Stage 1 is the top stage. Condenser/reboiler may be additional stages depending on type.'
+    },
+
+    'VARY': {
+        description: 'VARY statement: Used with SPEC to vary parameters (DUTY, TEMP, RATE, etc.) during solution to meet specification targets',
+        units: ['None - identifies variable to be varied (e.g., DUTY, TEMP)'],
+        typical_range: 'Depends on the parameter being varied; check SPEC constraints',
+        related: ['SPEC', 'DEFINE'],
+        tip: 'Use one VARY per SPEC block. VARY identifies which variable the solver adjusts. See PRO/II Keyword Manual – Change and Vary Statements.'
     },
 
     'REFLUX': {
@@ -310,5 +319,179 @@ export const PARAMETERS: { [key: string]: ParameterData } = {
              'METHOD SYSTEM(VLLE)=NRTL, L1KEY=1, L2KEY=5\n\n' +
              '**CRITICAL:** Wrong thermo method = wrong answers!\n' +
              'Always validate against plant data or literature.'
+    }
+    ,
+    'DEFINE': {
+        description: 'DEFINE statement: sets unit operation parameters or stream properties based on previously computed unit operations and streams (used to fix values or reference computed results).',
+        units: ['Syntax: DEFINE <property> AS STREAM=<sid>, <property 1>, {<operator>, value | <reference 2>, <property 2>}', 'Or: DEFINE <property> AS <unit type>=<uid>, <property 1>, {<operator>, value | <reference 2>, <property 2>}'],
+        related: ['SPEC', 'CALC', 'ISOTHERMAL'],
+        tip: 'DEFINE adjusts unit operation parameters directly using values computed earlier in the flowsheet. Use to set a unit parameter equal to a stream property or another unit result.',
+        typical_range: 'Varies by property; see manual for property-specific units',
+        // short example from manual: weight fraction controller example and usage hint
+        // example is stored as a tip to keep parameter schema consistent
+        // Note: example shown in hoverProvider will render this tip field
+        note: 'Example: DEFINE P(1) AS STRM=SRGO RATE(WT)  $ Fresh feed excluding liquid recycle\n' +
+              'DEFINE PRES AS CALC=HDST R(2)\n' +
+              'This sets P(1) equal to the weight rate of stream SRGO and PRES equal to a calculated result R(2) from unit HDST.'
+    },
+    'PLUS': {
+        description: 'Arithmetic operator: addition. Adds the right-hand operand to the left-hand operand.',
+        units: [],
+        tip: 'Synonyms: SUM, ADD. Example: DEFINE X AS STREAM=S1, RATE, PLUS, STREAM=S2, RATE'
+    },
+    'SUM': {
+        description: 'Arithmetic operator: addition (synonym of PLUS).',
+        units: [],
+        tip: 'Use with DEFINE/SPEC to sum values.'
+    },
+    'ADD': {
+        description: 'Arithmetic operator: addition (synonym of PLUS).',
+        units: [],
+        tip: 'Commonly used in DEFINE to add constants or other properties.'
+    },
+    'MINUS': {
+        description: 'Arithmetic operator: subtraction. Subtracts the right-hand operand from the left-hand operand.',
+        units: [],
+        tip: 'Synonyms: DIFF, SUBT. Example: DEFINE DP AS FLASH=F1, DP, MINUS, 0.5'
+    },
+    'DIFF': {
+        description: 'Arithmetic operator: subtraction (synonym of MINUS).',
+        units: [],
+        tip: 'Used to indicate difference between two values.'
+    },
+    'SUBT': {
+        description: 'Arithmetic operator: subtraction (synonym of MINUS).',
+        units: [],
+        tip: 'Alternative keyword for subtraction in DEFINE/SPEC.'
+    },
+    'TIMES': {
+        description: 'Arithmetic operator: multiplication. Multiplies the left-hand operand by the right-hand operand.',
+        units: [],
+        tip: 'Synonym: MULTIPLY. Example: DEFINE PRESSURE AS STREAM=REF, PRES, TIMES, 0.95'
+    },
+    'MULTIPLY': {
+        description: 'Arithmetic operator: multiplication (synonym of TIMES).',
+        units: [],
+        tip: 'Used to scale values by a multiplier.'
+    },
+    'DIVIDE': {
+        description: 'Arithmetic operator: division. Divides the left-hand operand by the right-hand operand.',
+        units: [],
+        tip: 'Synonyms: DIVIDEBY, RATIO, OVER. Example: SPEC FRAC=0.5, DIVIDE, 2'
+    },
+    'DIVIDEBY': {
+        description: 'Arithmetic operator: division (synonym of DIVIDE).',
+        units: [],
+        tip: 'Alternative textual form for division.'
+    },
+    'RATIO': {
+        description: 'Arithmetic operator: divide or ratio. Used in DEFINE/SPEC to indicate division or ratio scaling.',
+        units: [],
+        tip: 'Also used in parameters like PRATIO (pressure ratio); as operator, acts like DIVIDE.'
+    },
+    'OVER': {
+        description: 'Arithmetic operator: divide (synonym of DIVIDE).',
+        units: [],
+        tip: 'Common in plain-language arithmetic expressions (A OVER B).'
+    },
+    'PARAMETER': {
+        description: 'General PARAMETER statement used to control solver, iteration and convergence options',
+        units: ['Various - key/value pairs'],
+        tip: 'Used to set algorithmic options (iterations, tolerances, number of theoretical stages, etc.). Often required for packed column settings.'
+    },
+    'PACKING': {
+        description: 'Defines packing for a column section (random or structured) and associated parameters',
+        units: ['Type name/code (e.g., SULZER, FLEXI, M250Y)', 'SIZE (uflen), HEIGHT (uleng), FACTOR (packing factor)'],
+        tip: 'Used to declare packing type, size and height. Affects pressure drop, flood calculations and HETP; see packing section for TYPE/SIZE specifics.'
+    },
+    'SIZE': {
+        description: 'Nominal packing or particle size (used in PACKING and sizing sections)',
+        units: ['uflen (fine length units; e.g., inches or mm)'],
+        tip: 'Select from available sizes for a packing type; interacts with TYPE to determine packing factor when FACTOR is omitted.'
+    },
+    'HEIGHT': {
+        description: 'Packed section height or overall equipment height',
+        units: ['uleng (length units, e.g., m, ft)'],
+        tip: 'If specified, HETP is computed as HEIGHT divided by number of theoretical stages; otherwise HETP may be supplied directly.'
+    }
+    ,
+    'FRAC': {
+        description: 'Fraction qualifier used for properties and locations (represents fraction 0-1)',
+        units: ['Dimensionless (0-1)', 'Also PCT for percent and PPM for parts-per-million'],
+        tip: 'FRAC indicates fractions by default and is used as a qualifier for composition, profiles (e.g., TPROFILE) and reactor location fractions.'
+    },
+    'SRXSTR': {
+        description: 'Subroutine SRXSTR: stores calculator vector element as a stream property and re-flashes the stream',
+        units: ['Stream identifier (sid)'],
+        tip: 'CALL SRXSTR(type, value, sid) stores values (SMR, SWR, STEMP, etc.) and re-flashes stream to update thermodynamic state.'
+    },
+    'SMR': {
+        description: 'Stream property: SMR = stream mole rate (mol/time)',
+        units: ['M (moles/time)'],
+        tip: 'Accessible via SRXSTR and stream property tables; use for calculator/stream manipulations.'
+    },
+    'SWR': {
+        description: 'Stream property: SWR = stream weight (mass/time)',
+        units: ['WT (mass/time)'],
+        tip: 'Accessible via SRXSTR and stream property tables; typical use in calculator and stream manipulations.'
+    }
+    ,
+    'ROVHD': {
+        description: 'ROVHD: rate (or fraction) assigned to overhead product in stream splitting or column outputs',
+        units: ['Depending on context: weight/mole rate or fraction'],
+        tip: 'Used in stream calculator and column split rules (ROVHD specifies rate to overhead product).'
+    },
+    'SGVR': {
+        description: 'Standard gas volume rate of stream (standard conditions gas volumetric flow)',
+        units: ['GV (standard gas volume per time)'],
+        tip: 'Reported by stream property tables and accessible via SRXSTR (SGVR). Units default to problem standard gas volume units per time.'
+    },
+    'RXCALC': {
+        description: 'RXCALC: reactor calculation options (selects model, basis, integration and kinetics options)',
+        units: ['Optional model/basis flags'],
+        tip: 'Entries: MODEL=STOIC|SHIFT|METHANATION, CONCENTRATION|PARTIALPRESSURE|FUGACITY, NOHBALANCE, KINETICS=...; controls reaction solver behavior.'
+    },
+    'EQUR': {
+        description: 'EQUREACTOR / EQUR: Equilibrium reactor module identifier (equilibrium reaction solver)',
+        units: ['Unit identifier string (UID)'],
+        tip: 'Defines an equilibrium reactor; supports REACTION, EQUILIBRIUM, APPROACH, RXCALC entries and typical reactor options.'
+    },
+    'DEWWATER': {
+        description: 'DEWWATER: water dew point calculation (water dew point for hydrocarbon-water systems)',
+        units: ['Temperature (utemp) or Pressure (upres) qualifiers'],
+        tip: 'Used with DEW and DEWWATER statements to compute water dew point conditions for hydrocarbon-water systems; not meaningful with VLLE methods.'
+    }
+    ,
+    'SHIFT': {
+        description: 'Special built-in shift reactor model/keyword used in REACTION statements or RXCALC MODEL selection',
+        units: ['Keyword / Model selection'],
+        tip: 'Used to indicate the water-gas shift reaction model (often alongside METHANATION). Appears as REACTION SHIFT or RXCALC MODEL=SHIFT; built-in stoichiometry and equilibrium data are used.'
+    },
+    'SPASS': {
+        description: 'Number of shell passes for shell-and-tube heat exchangers or condenser/reboiler configuration',
+        units: ['Integer (number of shell passes)'],
+        tip: 'Defines the number of shell passes. When only SPASS is given, TPASS is set to twice SPASS for LMTD correction; default when omitted is TPASS=2 and SPASS=1.'
+    },
+    'TPASS': {
+        description: 'Number of tube passes for shell-and-tube heat exchangers',
+        units: ['Integer (number of tube passes)'],
+        tip: 'Defines number of tube passes. Default is TPASS=2 when omitted. If only TPASS is given, SPASS is set to half TPASS (or 1 if TPASS=1); TPASS is reset to twice SPASS if not in expected relation and a warning is issued.'
+    }
+    ,
+    'HOTVOL': {
+        description: 'Total actual volumetric flow of the stream at flowing conditions (hot volume)',
+        units: ['GV or LV (volume units per time) depending on basis, default: problem vapor volume units/time'],
+        tip: 'Includes vapor + liquid + water at flowing conditions. Often used in mass balance and entrainment specifications.'
+    },
+    'XOVHD': {
+        description: 'Actual composition of overhead product (fractional composition on specified basis)',
+        units: ['Basis: M (mole, default), W (weight), LV (std liquid vol), GV (std gas vol)'],
+        tip: 'Used in stream splitting statements (XOVHD) to define composition of overhead product explicitly. Provide i,j ranges and values as groups.'
+    }
+    ,
+    'SEQUENCE': {
+        description: 'Defines an ordered list of stream identifiers used by unit sequences and setup sections',
+        units: ['List of stream IDs (comma-separated)'],
+        tip: 'Use SEQUENCE to enumerate stream identifiers used in SEQUENCE or setup sections; helpful for referencing streams by index in calculators or array-style references.'
     }
 };

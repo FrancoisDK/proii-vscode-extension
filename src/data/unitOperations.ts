@@ -1,3 +1,4 @@
+// ...CONTROLLER entry will be added inside UNIT_OPERATIONS repository further below
 /**
  * Unit Operations Data for PRO/II Hover Tooltips
  * Contains descriptions, parameters, and examples for all PRO/II unit operations
@@ -434,7 +435,7 @@ WET/DRY basis:
   WET - Include water in calculation
   DRY - Exclude water from calculation
 
-Operators: PLUS, MINUS, TIMES, DIVIDEBY
+Operators: PLUS, SUM, ADD, MINUS, DIFF, SUBT, TIMES, MULTIPLY, DIVIDE, DIVIDEBY, RATIO, OVER
 
 Tolerances:
   ATOL - Absolute tolerance
@@ -1344,7 +1345,7 @@ WET/DRY:
   DRY = Excludes free water
 
 Operators:
-  DIVIDE, MULTIPLY, PLUS, MINUS
+  PLUS, SUM, ADD, MINUS, DIFF, SUBT, TIMES, MULTIPLY, DIVIDE, DIVIDEBY, RATIO, OVER
   
 ATOL (absolute tolerance):
   Convergence tolerance (absolute)
@@ -1963,7 +1964,7 @@ Format: DEFINE <param> AS <unit type>=uid, <param>, {<op>, <ref>}
 Available parameters:
   All OPERATION specs, HDP, CDP, FT, U, AREA
 
-Operators: PLUS, ADD, MINUS, TIMES, MULTIPLY, DIVIDEBY, DIVIDE
+Operators: PLUS, SUM, ADD, MINUS, DIFF, SUBT, TIMES, MULTIPLY, DIVIDE, DIVIDEBY, RATIO, OVER
 
 Multiple DEFINE statements allowed
 
@@ -3736,7 +3737,7 @@ Only one DEFINE statement allowed
 Can define: DP or PRESSURE
 
 Operators:
-  PLUS, MINUS, MULTIPLY, DIVIDE
+  PLUS, SUM, ADD, MINUS, DIFF, SUBT, TIMES, MULTIPLY, DIVIDE, DIVIDEBY, RATIO, OVER
 
 Common uses:
   
@@ -6388,6 +6389,8 @@ PROCEDURE block:
 Calculator executes after unit operations converge.
 Use for complex correlations, property adjustments, ratio calculations.`
     },
+  // Alias 'CALC' to 'CALCULATOR' to treat shorthand as same unit operation
+  'CALC': undefined as unknown as UnitOperationData,
 
     'STCALC': {
         description: 'Stream Calculator - Feed blending, stream splitting, and stream synthesis (PRO/II Manual §16.2)',
@@ -6539,5 +6542,29 @@ COMPARISON WITH OTHER UNITS:
   - Each component must be specified exactly once
   - Can combine all three modes in one unit
   - STOP=ZERO handles infeasible specs gracefully`
-    }
+  },
+  'CONTROLLER': {
+    description: 'The CONTROLLER is analogous to a feedback process controller. It adjusts an upstream parameter in the flowsheet to reach a specified objective on a process stream, unit, or thermodynamic parameter operation. A specification may be made on a stream property or rate, a unit operating condition, or a CALCULATOR result. The control variable may be a stream or unit operation condition, or a CALCULATOR result. There must be one specification and one variable.',
+    // types removed: controller modes are defined via CPARAMETER/ACTION and parameter entries
+    parameters: {
+  required: ['UID', 'SPEC'],
+  optional: ['NAME', 'MEASUREMENT', 'ACTION', 'RETURNUNIT', 'ITER', 'IPRINT', 'NOPRINT', 'SOLVE', 'STOP', 'CONTINUE']
+    },
+    example: `CONTROLLER UID=CNT1, NAME=CONTROLLER 1
+SPEC STREAM=1, COMP=3,4, FRAC(W), VALUE=0.01
+VARY FLASH=F1, TEMP, MAXI=300, MINI=100, EST2=150, STEP=50
+CPARAM ITER=20, NOPRINT, STOP
+
+Use a CONTROLLER to make the weight fraction of components 3+4 in stream 1 equal to 0.01. The CONTROLLER algorithm uses 150 degrees as a second estimate and 50 degrees as a maximum iteration step size. Allow a maximum of 20 iterations and suppress the iteration printout.`,
+  notes: `Typical use: maintain a process objective such as stream composition, temperature, or rate by varying an upstream parameter. There must be one specification and one variable.
+
+Controller Parameters (CPARAMETER): ITER(max iterations) - default 10; IPRINT/NOPRINT - control iteration printout; SOLVE/STOP/CONTINUE - actions when limits are reached; RETURNUNIT(uid) - override automatic return unit (useful for nested controller loops). See PRO/II Keyword Manual Chapter 17.1 for details.
+
+Example shows weight fraction control using VARY and CPARAMETER options.
+📖 Reference: PRO/II Keyword Manual – Controller section.`
+  }
 };
+
+// Ensure shorthand aliases map to the same data objects
+// CALC is shorthand for CALCULATOR
+(UNIT_OPERATIONS as any)['CALC'] = (UNIT_OPERATIONS as any)['CALCULATOR'];
