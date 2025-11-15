@@ -2,9 +2,9 @@
   "name": "proii-language-support",
   "displayName": "PRO/II Language Support",
   "description": "Syntax highlighting, hover tooltips, and language support for PRO/II input and output files (.inp, .std, .out)",
-  "version": "1.4.7",
+  "version": "1.4.9",
   "publisher": "francois-de-klerk",
-  "icon": "PRO_II.png",
+  "icon": "proii_icon.png",
   "author": "Francois de Klerk",
   "activationEvents": [
     "onLanguage:proii"
@@ -34,8 +34,32 @@
         "command": "proii.refreshSemanticTokens",
         "title": "Refresh Stream Name Highlighting",
         "category": "PRO/II"
+      },
+      {
+        "command": "proii.toggleColumnLimiter",
+        "title": "Toggle Column Limiter (80-char limit)",
+        "category": "PRO/II"
+      },
+      {
+        "command": "proii.toggleColumnRuler",
+        "title": "Toggle Column Ruler Visualization",
+        "category": "PRO/II"
+      },
+      {
+        "command": "proii.showComponentDefinition",
+        "title": "Show Component Definition",
+        "category": "PRO/II"
       }
     ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "proii.showComponentDefinition",
+          "when": "editorLangId == proii",
+          "group": "navigation@1"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "proii",
@@ -46,7 +70,8 @@
         "extensions": [
           ".inp",
           ".std",
-          ".out"
+          ".out",
+          ".sdf"
         ],
         "configuration": "./language-configuration.json"
       }
@@ -138,6 +163,38 @@
           "minimum": 1,
           "maximum": 120,
           "description": "Start column for parameters on unit operation lines (1-based)",
+          "scope": "resource"
+        },
+        "proii.columnLimiter.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the 80-column width limiter for Pro/II compliance",
+          "scope": "resource"
+        },
+        "proii.columnLimiter.columnLimit": {
+          "type": "integer",
+          "default": 80,
+          "minimum": 40,
+          "maximum": 200,
+          "description": "Column limit for Pro/II files (Pro/II typically truncates at 80)",
+          "scope": "resource"
+        },
+        "proii.columnLimiter.warnOnExceed": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show warnings when lines exceed the column limit",
+          "scope": "resource"
+        },
+        "proii.columnLimiter.enableAutoFix": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable quick-fix code actions for column limit violations",
+          "scope": "resource"
+        },
+        "proii.columnLimiter.showRuler": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a visual ruler at the column limit in the editor",
           "scope": "resource"
         }
       }

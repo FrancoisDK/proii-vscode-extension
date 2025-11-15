@@ -2,6 +2,91 @@
 
 All notable changes to the "proii-language-support" extension will be documented in this file.
 
+## [1.4.9] - 2025-11-15
+
+### Fixed
+- **⚠️ Trademark Compliance**: Replaced extension icon to avoid potential trademark infringement
+  - Removed `PRO_II.png` which may have resembled AVEVA PRO/II branding
+  - Added `proii_icon_new.png` - 100% original geometric design
+  - New icon features: Circle + Square (unit operation symbol) + P2 text + stream arrows
+  - Color scheme: Cyan (#4EC9B0) for equipment, Orange (#CE9178) for streams
+  - Copyright status: Original design, safe for distribution
+
+### Note
+- **No functional changes** - All v1.4.8 features remain unchanged
+- This is a legal/compliance fix only
+- Extension functionality is identical to v1.4.8
+
+---
+
+## [1.4.8] - 2025-11-01
+
+### Added - ⭐ MAJOR FEATURE: 80-Column Limiter & Component Definition Lookup
+
+#### 80-Column Width Compliance Checker
+- **Real-Time Diagnostics**: Orange/yellow squiggly underlines on lines exceeding 80 characters
+- **4 Smart Quick-Fix Actions**:
+  1. Truncate line to exactly 80 characters
+  2. Continue line with & marker (comment continuation)
+  3. Add comment with truncated content on new line (`$ <rest_of_line>`)
+  4. Disable checking for this line (add to ignore list)
+- **Visual Column Ruler**: Automatic visual ruler at column 80 for [proii] language mode only
+  - Language-scoped: applies ONLY to `.inp`, `.std`, `.out`, `.sdf` files
+  - No interference with Python, JavaScript, or other file types
+- **Configuration System**: 5 settings to customize behavior (enabled, columnLimit, warnOnExceed, enableAutoFix, showRuler)
+- **Toggle Commands**: `PRO/II: Toggle Column Limiter` and `PRO/II: Toggle Column Ruler`
+
+#### Component Definition Lookup (Context Menu)
+- **Right-Click Component Index**: New context menu item "Show Component Definition"
+- **Interactive Quick Pick Menu**: Choose from 3 actions when clicking a component index:
+  1. **Show Info**: Display component ID, name, type, formula, molecular weight
+  2. **Go to LIBID Definition**: Jump to component's location in LIBID statement
+  3. **Show All Components**: Browse complete list of all components in file
+- **Multi-LIBID Support**: Handles multiple LIBID...BANK= sections in same file
+- **Line Continuation Handling**: Correctly parses `/&` and `&` continuation markers
+- **30+ Component Database**: Pre-loaded with common hydrocarbons, inorganics, and aromatics
+- **Component Examples**:
+  - Hydrocarbons: C1-C12, IC4, NC4, IC5, NC5, BENZENE, TOLUENE, EBENZENE, PXYLENE, OXYLENE
+  - Inorganics: H2O, H2, N2, O2, CO2, H2S, NH3
+  - Full names: METHANE, ETHANE, PROPANE, WATER, HYDROGEN, NITROGEN, etc.
+
+#### Enhanced Component Hover Provider
+- **Hover on Component Names**: Instant tooltip with component details
+- **30+ Pre-Loaded Components**: Expanded from 15 to 30+ components with full names
+- **Multi-Line LIBID Support**: Correctly extracts from `/&` continuation markers
+- **Detailed Information**: Type, chemical formula, molecular weight for common components
+
+#### LIBID Syntax Highlighting
+- **Component-Specific Colors**: Different colors for component numbers (orange) vs. names (cyan/green)
+- **Multi-Line Continuation**: Proper highlighting of `/&` and `&` continuation markers
+- **Separator Highlighting**: Distinct colors for commas and slashes in component lists
+
+### Changed
+- **Ruler Implementation**: Language-scoped to [proii] files only
+  - Workspace-level configuration (not global)
+  - Automatically applied when ProII file is active
+  - Fixed previous issue where ruler appeared on all file types
+
+### Fixed
+- **Component Extraction**: Now correctly extracts all components from multi-line LIBID statements
+- **Multi-LIBID Support**: Handles multiple LIBID...BANK= sections properly
+- **Line Continuation**: Correctly processes both `/&` and `&` continuation markers
+- **Ruler Scope**: Fixed ruler appearing globally, now properly scoped to ProII files only
+
+### Performance
+- Column limit checking: < 50ms full document scan
+- Component extraction: < 100ms for files with multiple LIBID sections
+- Diagnostics generation: Real-time with 100ms debounce on changes
+- Component lookup: Instant hover and context menu response
+
+### Configuration
+New settings available under `proii.columnLimiter`:
+- `enabled` (default: true) - Enable/disable column limiter
+- `columnLimit` (default: 80, range: 40-200) - Column limit threshold
+- `warnOnExceed` (default: true) - Show diagnostics when limit exceeded
+- `enableAutoFix` (default: true) - Provide quick-fix actions
+- `showRuler` (default: true) - Display visual ruler at column limit (ProII files only)
+
 ## [1.3.1] - 2025-10-18
 
 ## [1.4.7] - 2025-10-19

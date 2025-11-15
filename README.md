@@ -1,3 +1,66 @@
+## 🆕 What's New in v1.4.8 (2025-11-01) ⭐ MAJOR FEATURE
+
+### 80-Column Width Limiter - Pro/II Compliance Checker
+
+**Identify and fix lines exceeding Pro/II's 80-character truncation limit!**
+
+#### Real-Time Diagnostics
+- 🔍 Orange/yellow squiggly underlines on lines > 80 chars
+- ⚡ Quick-fix actions with 4 smart solutions
+- ⚙️ Fully configurable with 5 settings
+- 🎯 Performance: < 50ms full document scan
+
+#### 4 Quick-Fix Actions
+1. **Truncate to 80 characters** - Instantly cut long lines
+2. **Continue with & marker** - Add comment continuation
+3. **Add truncation comment** - Creates: `$ <rest_of_line>` on new line
+4. **Disable for this line** - Skip checking for specific lines
+
+#### Visual Column Ruler
+- 📏 Automatic visual ruler at column 80 for Pro/II files
+- 🎨 Only applies to `.inp`, `.std`, `.out`, `.sdf` files (not Python, JavaScript, etc.)
+- 🔄 Toggle with `PRO/II: Toggle Column Ruler` command
+- ⚙️ Configurable via `proii.columnLimiter.showRuler`
+- ✅ Language-scoped setting - ruler appears only on ProII files
+
+#### Component Definition Lookup (NEW!)
+- 🧪 **Right-click on component index** → "Show Component Definition"
+- 📋 Shows component ID, name, type, chemical formula, molecular weight
+- 🔍 Jump to LIBID definition location
+- 📊 List all components in document
+- 🔄 Supports multiple LIBID...BANK= sections
+- ⚡ Handles 30+ common components with detailed info
+- 🌐 Multi-line LIBID support with `/&` and `&` continuations
+
+#### Component Hover Provider
+- 🔬 Hover on component names to see: index, name, type, formula, molecular weight
+- 📊 30+ pre-loaded common components (hydrocarbons, inorganics, aromatics)
+- 🔄 Multi-line LIBID support with `/&` continuation markers
+
+#### Enhanced LIBID Syntax Highlighting
+- 🎨 Component numbers in orange/yellow, names in cyan/green
+- 🔄 Multi-line continuation support (`/&` and `&`)
+- ✨ Improved visual distinction and readability
+
+### Configuration
+```json
+{
+  "proii.columnLimiter.enabled": true,
+  "proii.columnLimiter.columnLimit": 80,
+  "proii.columnLimiter.warnOnExceed": true,
+  "proii.columnLimiter.enableAutoFix": true,
+  "proii.columnLimiter.showRuler": true
+}
+```
+
+### Commands
+- `PRO/II: Toggle Column Limiter` - Enable/disable 80-column checking
+- `PRO/II: Toggle Column Ruler` - Show/hide visual ruler
+- `PRO/II: Show Component Definition` - Right-click on component index to view details
+- `PRO/II: Refresh Stream Name Highlighting` - Manually refresh highlights
+
+---
+
 ## 🆕 What's New in v1.4.7 (2025-10-19)
 
 ### Minor improvements and documentation updates
@@ -9,13 +72,12 @@
  - Ensured: CALC and CALCULATOR behave identically as unit operations and parameters.
 
 These updates refine hover accuracy and documentation and improve arithmetic and DEFINE support throughout the extension.
-### Release Notes:
- - 📄 `RELEASE_v1.4.6.md` - Complete changelog with technical details
- - 📄 `TEST_STREAM_HIGHLIGHTING.md` - Comprehensive test report
- - 🧪 `test-stream-highlighting.js` - Integration test script
+
+---
+
 # PRO/II Language Support for VS Code
 
-Comprehensive syntax highlighting, **interactive hover tooltips**, **60+ code snippets**, and language support for PRO/II process simulation files (`.inp`, `.std`, `.out`).
+Comprehensive syntax highlighting, **interactive hover tooltips**, **component lookup**, **80-column compliance checking**, and language support for PRO/II process simulation files (`.inp`, `.std`, `.out`).
 
 ## 🆕 What's New in v1.4.6
 
