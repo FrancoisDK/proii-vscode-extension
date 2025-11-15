@@ -1,3 +1,12 @@
+## 🆕 What's New in v1.4.9 (2025-11-15)
+
+### Icon Update - Trademark Compliance
+- ⚠️ **Replaced extension icon** to avoid potential trademark infringement with AVEVA PRO/II branding
+- 🎨 **New icon**: Original copyright-free geometric design (circle + square + arrows + "P2" text)
+- ✅ **No functional changes** - All v1.4.8 features remain unchanged
+
+---
+
 ## 🆕 What's New in v1.4.8 (2025-11-01) ⭐ MAJOR FEATURE
 
 ### 80-Column Width Limiter - Pro/II Compliance Checker

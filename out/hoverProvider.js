@@ -92,7 +92,7 @@ class ProIIHoverProvider {
         markdown.isTrusted = true;
         markdown.supportHtml = true;
         // Title with stream icon
-        markdown.appendMarkdown(`### 🌊 Stream: ${name}\n\n`);
+        markdown.appendMarkdown(`### ℹ️ Stream: ${name}\n\n`);
         markdown.appendMarkdown(`**${description}**\n`);
         return new vscode.Hover(markdown);
     }
