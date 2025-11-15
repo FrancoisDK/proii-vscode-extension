@@ -58,7 +58,7 @@ class StreamNameProvider {
             'COND', 'REB', 'SIDE', 'REAC', 'CONV', 'SELE', 'METH', 'COOL', 'HEAT',
             'FPROD', 'FOVHD', 'ROVHD', 'FBTMS', 'RBTMS', 'XOVHD', 'XBTMS',
             'RETURN', 'PSPEC', 'PTOP', 'PART', 'VAPO', 'LIQU', 'ADIA', 'OPER',
-            'SRXSTR', 'TIMES', 'PLUS', 'MINUS', 'DIVIDE', 'VALUE', 'EST2', 'MAXI',
+            'SRXSTR', 'TIMES', 'PLUS', 'SUM', 'ADD', 'MINUS', 'DIFF', 'SUBT', 'DIVIDE', 'DIVIDEBY', 'MULTIPLY', 'RATIO', 'OVER', 'VALUE', 'EST2', 'MAXI',
             'MINI', 'ATOL', 'RTOL', 'ITER', 'SOLVE', 'CPARAM', 'RESULT', 'SEQUENCE',
             'TRAY', 'PASS', 'DPCALC', 'MODEL', 'DP', 'HOT', 'COLD', 'OVHD', 'BTMS',
             'AIRCOOLER', 'INLET', 'OUTLET', 'EFFLUENT', 'STAGE', 'REAC'

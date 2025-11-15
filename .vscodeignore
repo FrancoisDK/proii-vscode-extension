@@ -5,6 +5,7 @@ node_modules/**
 .gitignore
 tsconfig.json
 *.vsix
+*.zip
 **/*.map
 .git/**
 .github/**
@@ -13,3 +14,9 @@ __pycache__/**
 test/**
 tests/**
 .DS_Store
+temp_vsix/**
+proii-debug-extract/**
+proii-debug.zip
+proii-test.zip
+V1.4.8_*.md
+RULER_FIX_COMPLETE.md
